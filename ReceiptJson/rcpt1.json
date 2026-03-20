@@ -1,0 +1,139 @@
+{
+  "storeName": "Costco Wholesale",
+  "storeLocation": "Yorba Linda #445",
+  "storeAddress": "22633 Savi Ranch Parkway, Yorba Linda, CA 92886",
+  "storePhone": "(714) 282-6650",
+  "latitude": 33.8886,
+  "longitude": -117.7653,
+  "purchaseDate": "2025.10.14",
+  "purchaseTime": "17:49",
+  "memberNumber": "F2 Member 111826788760",
+  "items": [
+    {
+      "productName": "KS Water Gal",
+      "itemCode": "931484",
+      "price": "5.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "9900000000",
+      "price": "0.60USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Water Gal",
+      "itemCode": "931484",
+      "price": "5.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "9900000000",
+      "price": "0.60USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Cetaphil LTN",
+      "itemCode": "1695130",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Late Jul",
+      "itemCode": "1125156",
+      "price": "7.89USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Wagyu TP Sir",
+      "itemCode": "45708",
+      "price": "58.84USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Neut Rainbth",
+      "itemCode": "1654375",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Hny Rstd Mix",
+      "itemCode": "1055663",
+      "price": "14.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS 5DZ Eggs",
+      "itemCode": "1025795",
+      "price": "10.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Seaweed",
+      "itemCode": "1193197",
+      "price": "11.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Seaweed",
+      "itemCode": "1193197",
+      "price": "11.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Low Carb Ket",
+      "itemCode": "1449725",
+      "price": "13.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Protein Gran",
+      "itemCode": "1840896",
+      "price": "9.97USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Red Grps",
+      "itemCode": "1059994",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Grn Grps",
+      "itemCode": "1059995",
+      "price": "7.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Org Whole Milk",
+      "itemCode": "1743030",
+      "price": "15.89USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Water Gal",
+      "itemCode": "931484",
+      "price": "5.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "9900000000",
+      "price": "0.60USD",
+      "amount": "1"
+    }
+  ],
+  "totalItems": 16,
+  "subtotal": "229.27USD",
+  "tax": "3.10USD",
+  "taxRate": "7.75%",
+  "totalBeforeReward": "232.37USD",
+  "ccReward": "121.73USD",
+  "subtotalAfterReward": "107.54USD",
+  "totalPaid": "110.64USD",
+  "paymentMethod": "Costco Visa",
+  "transactionId": "528700004607",
+  "cashier": "Robert H",
+  "operatorNumber": "OP#: 27"
+}
