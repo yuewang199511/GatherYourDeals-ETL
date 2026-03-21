@@ -1,0 +1,59 @@
+{
+  "storeName": "Ralphs",
+  "storeSlogan": "Fresh For Everyone",
+  "storeAddress": "711 S. Weir Canyon Road, Anaheim, CA 92808",
+  "storePhone": "(714) 283-8711",
+  "latitude": 33.8419,
+  "longitude": -117.7389,
+  "purchaseDate": "2026.02.28",
+  "purchaseTime": "20:20",
+  "cashier": "Alex Y",
+  "manager": "John Schroeder",
+  "managerPhone": "(714) 283-8711",
+  "items": [
+    {
+      "productName": "Embs Casera Slsa",
+      "price": "1.49USD",
+      "amount": "1",
+      "taxCode": "F"
+    },
+    {
+      "productName": "Campbells Soup",
+      "price": "1.99USD",
+      "amount": "1",
+      "taxCode": "F"
+    },
+    {
+      "productName": "Campbells Soup",
+      "price": "1.99USD",
+      "amount": "1",
+      "taxCode": "F"
+    },
+    {
+      "productName": "Coombs Vrmnt Syrupfv",
+      "price": "10.49USD",
+      "amount": "1",
+      "taxCode": "F"
+    }
+  ],
+  "totalItems": 4,
+  "subtotal": "15.96USD",
+  "tax": "0.00USD",
+  "total": "15.96USD",
+  "ralphsRewardsSavings": "2.50USD",
+  "totalCoupons": "2.50USD",
+  "annualCardSavings": "2.50USD",
+  "verifiedTotalSavings": "2.50USD",
+  "rewardsCardNumber": "******1000",
+  "paymentMethod": "Visa Credit",
+  "cardLastFour": "2920",
+  "referenceNumber": "228202",
+  "transactionCode": "6B6584FC26B49C34",
+  "entryId": "703-897-448-135-10-458",
+  "surveyInfo": {
+    "website": "www.kroger.com/feedback",
+    "fuelPointsReward": "50 Fuel Points"
+  },
+  "jobsWebsite": "jobs.ralphs.com",
+  "storeWebsite": "www.ralphs.com"
+}

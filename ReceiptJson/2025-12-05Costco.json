@@ -1,0 +1,164 @@
+{
+  "storeName": "Costco Wholesale",
+  "storeLocation": "Yorba Linda #445",
+  "storeAddress": "22633 Savi Ranch Parkway, Yorba Linda, CA 92886",
+  "storePhone": "(714) 282-6650",
+  "latitude": 33.8886,
+  "longitude": -117.7653,
+  "purchaseDate": "2025.12.05",
+  "purchaseTime": "14:39",
+  "memberNumber": "D9 Member 111826788760",
+  "items": [
+    {
+      "productName": "KS Bath",
+      "itemCode": "6262016",
+      "price": "20.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Buffalo Wing",
+      "itemCode": "1338984",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Buffalo Wing",
+      "itemCode": "1338984",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Late Jul",
+      "itemCode": "1125156",
+      "price": "7.89USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS AM Vodka",
+      "itemCode": "639271",
+      "price": "12.99USD",
+      "amount": "1",
+      "ageVerification": "Date of Birth Keyed"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "5400000000",
+      "price": "0.10USD",
+      "amount": "1"
+    },
+    {
+      "productName": "28\" Wreath",
+      "itemCode": "28028",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Blues",
+      "itemCode": "519638",
+      "price": "7.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Red Grapes",
+      "itemCode": "5276",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Bananas",
+      "itemCode": "30669",
+      "price": "1.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Biscacookies",
+      "itemCode": "1646227",
+      "price": "7.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Lollipeppers",
+      "itemCode": "7367",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "4LB Honycrsp",
+      "itemCode": "6659",
+      "price": "8.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "FGF Jalabite",
+      "itemCode": "1845038",
+      "price": "12.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Asparagus",
+      "itemCode": "970623",
+      "price": "9.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Persimmons",
+      "itemCode": "8595",
+      "price": "8.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Colombian",
+      "itemCode": "120296",
+      "price": "21.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Mini Wontons",
+      "itemCode": "638854",
+      "price": "9.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Instant Savings",
+      "itemCode": "0000369264",
+      "price": "-2.50USD",
+      "amount": "1",
+      "linkedItem": "638854"
+    },
+    {
+      "productName": "Org FR Eggs",
+      "itemCode": "1068083",
+      "price": "7.69USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org FR Eggs",
+      "itemCode": "1068083",
+      "price": "7.69USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Seaweed",
+      "itemCode": "1193197",
+      "price": "11.99USD",
+      "amount": "1"
+    }
+  ],
+  "totalItems": 20,
+  "subtotal": "231.20USD",
+  "tax": "4.19USD",
+  "taxRate": "7.75%",
+  "total": "235.39USD",
+  "instantSavings": "2.50USD",
+  "paymentMethod": "Costco Visa",
+  "cardLastFour": "8424",
+  "transactionId": "533900007932",
+  "appNumber": "64240C",
+  "sequenceNumber": "7932",
+  "cashier": "Kevin I",
+  "operatorNumber": "OP#: 202",
+  "warehouseNumber": "445",
+  "terminalNumber": "7",
+  "transactionNumber": "179",
+  "seasonalMessage": "Seasons Greetings & Happy Holidays"
+}

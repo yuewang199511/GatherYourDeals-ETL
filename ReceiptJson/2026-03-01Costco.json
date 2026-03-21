@@ -1,0 +1,132 @@
+{
+  "storeName": "Costco Wholesale",
+  "storeLocation": "Yorba Linda #445",
+  "storeAddress": "22633 Savi Ranch Parkway, Yorba Linda, CA 92886",
+  "storePhone": "(714) 282-6650",
+  "latitude": 33.8886,
+  "longitude": -117.7653,
+  "purchaseDate": "2026.03.01",
+  "purchaseTime": "14:48",
+  "memberNumber": "N8 Member 111826788760",
+  "bobCount": 0,
+  "items": [
+    {
+      "productName": "Vicky Jalape",
+      "itemCode": "1981100",
+      "price": "7.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Celery",
+      "itemCode": "1036732",
+      "price": "6.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Buf Wings",
+      "itemCode": "1956136",
+      "price": "16.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Contact 2PK",
+      "itemCode": "1171570",
+      "price": "16.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Instant Savings",
+      "itemCode": "0000375304",
+      "price": "-5.00USD",
+      "amount": "1",
+      "linkedItem": "1171570"
+    },
+    {
+      "productName": "4LB Honycrsp",
+      "itemCode": "6659",
+      "price": "9.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Green Grapes",
+      "itemCode": "47825",
+      "price": "8.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Bananas",
+      "itemCode": "30669",
+      "price": "1.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Shrimp Mandu",
+      "itemCode": "1979463",
+      "price": "16.59USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Beef Rolls",
+      "itemCode": "1863645",
+      "price": "14.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Chick Skewrs",
+      "itemCode": "1415808",
+      "price": "17.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Greek Yogurt",
+      "itemCode": "1048072",
+      "price": "7.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org FR Eggs",
+      "itemCode": "1068083",
+      "price": "7.69USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Red Grapes",
+      "itemCode": "5276",
+      "price": "8.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Broc 2LB",
+      "itemCode": "7267",
+      "price": "6.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Greek Salad",
+      "itemCode": "1973044",
+      "price": "10.99USD",
+      "amount": "1"
+    }
+  ],
+  "totalItems": 15,
+  "subtotal": "155.15USD",
+  "tax": "0.93USD",
+  "taxRate": "7.75%",
+  "totalBeforeReward": "156.08USD",
+  "ccReward": "110.94USD",
+  "subtotalAfterReward": "44.21USD",
+  "taxAfterReward": "0.93USD",
+  "totalPaid": "45.14USD",
+  "instantSavings": "5.00USD",
+  "paymentMethod": "Costco Visa",
+  "cardLastFour": "8424",
+  "cardReadMethod": "CHIP Read",
+  "transactionId": "606000006595",
+  "appNumber": "67997C",
+  "sequenceNumber": "6595",
+  "cashier": "Summer G.",
+  "operatorNumber": "OP#: 16",
+  "warehouseNumber": "445",
+  "terminalNumber": "6",
+  "transactionNumber": "296"
+}

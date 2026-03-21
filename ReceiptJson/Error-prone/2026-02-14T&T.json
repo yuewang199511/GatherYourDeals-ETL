@@ -1,0 +1,138 @@
+{
+  "storeName": "T&T Supermarket",
+  "storeLocation": "Chinatown",
+  "storeAddress": "179 Keefer Place, Vancouver, B.C., V6B 6C1",
+  "storePhone": "(604) 899-8836",
+  "gstNumber": "135747137RT",
+  "latitude": 49.2796,
+  "longitude": -123.1066,
+  "purchaseDate": "2026.02.14",
+  "purchaseTime": "17:06:55",
+  "cashier": "Johnny S",
+  "transactionNumber": "040982099",
+  "items": [
+    {
+      "productName": "JXJ Crisp Green Cowpea",
+      "productNameChinese": "吉香居青脆豇豆",
+      "price": "6.29CAD",
+      "amount": "1",
+      "category": "Grocery",
+      "onSale": false
+    },
+    {
+      "productName": "14inch Bamboo Skewer with 4.0R",
+      "productNameChinese": "14吋加粗竹串",
+      "price": "1.69CAD",
+      "amount": "1",
+      "category": "Grocery",
+      "onSale": false,
+      "taxCode": "GP"
+    },
+    {
+      "productName": "DXC Beijing Traditional Pastry",
+      "productNameChinese": "稻香村京八件",
+      "price": "26.88CAD",
+      "amount": "1",
+      "category": "Grocery",
+      "onSale": true
+    },
+    {
+      "productName": "Haidilao Rattan Pepper Bobo Ch",
+      "productNameChinese": "海底捞藤椒鸡鸡辣鸡腿味",
+      "price": "6.59CAD",
+      "amount": "1",
+      "category": "Grocery",
+      "onSale": false
+    },
+    {
+      "productName": "Carrot",
+      "productNameChinese": "紅蘿蔔",
+      "price": "0.52CAD",
+      "amount": "0.305kg",
+      "unitPrice": "1.70CAD/kg",
+      "category": "Produce",
+      "onSale": true
+    },
+    {
+      "productName": "Lotus Root",
+      "productNameChinese": "蓮藕",
+      "price": "4.18CAD",
+      "amount": "1.130kg",
+      "unitPrice": "3.70CAD/kg",
+      "category": "Produce",
+      "onSale": true
+    },
+    {
+      "productName": "Fresh Cauliflower",
+      "productNameChinese": "富貴花",
+      "price": "7.04CAD",
+      "amount": "0.915kg",
+      "unitPrice": "7.69CAD/kg",
+      "category": "Produce",
+      "onSale": false
+    },
+    {
+      "productName": "Tomatoes",
+      "productNameChinese": "蕃茄",
+      "price": "2.11CAD",
+      "amount": "0.510kg",
+      "unitPrice": "4.14CAD/kg",
+      "category": "Produce",
+      "onSale": true
+    },
+    {
+      "productName": "Red Pomelo",
+      "productNameChinese": "紅肉柚子",
+      "itemCode": "584563",
+      "price": "5.00CAD",
+      "amount": "2",
+      "unitPrice": "2.00CAD each (2 @ $5.00)",
+      "category": "Produce",
+      "onSale": true
+    },
+    {
+      "productName": "Viet Huong Chicken Balls",
+      "productNameChinese": "越香越南雞肉丸",
+      "price": "6.07CAD",
+      "amount": "1",
+      "category": "Deli",
+      "onSale": true
+    },
+    {
+      "productName": "Shuwei Original Ham Sausage",
+      "productNameChinese": "蜀味原味火腿腸",
+      "price": "15.87CAD",
+      "amount": "1",
+      "category": "Deli",
+      "onSale": true
+    },
+    {
+      "productName": "SD Boiled Shelled Quail Eggs",
+      "productNameChinese": "神丹水煮去殼鵪鶉蛋",
+      "price": "5.99CAD",
+      "amount": "1",
+      "category": "Deli",
+      "onSale": false
+    },
+    {
+      "productName": "VNF Shanghai Thin Dried Tofu",
+      "productNameChinese": "豐業上海薄豆干",
+      "price": "3.29CAD",
+      "amount": "1",
+      "category": "Deli",
+      "onSale": false
+    },
+    {
+      "productName": "Synear Mushroom Vegie Dumpling",
+      "productNameChinese": "思念蘑菇三鮮水餃",
+      "price": "3.71CAD",
+      "amount": "1",
+      "category": "Deli",
+      "onSale": false
+    }
+  ],
+  "totalItems": 14,
+  "pointsEarned": 80,
+  "pointsValue": "0.00CAD",
+  "subtotal": "95.24CAD"
+}

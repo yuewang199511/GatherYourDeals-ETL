@@ -1,0 +1,145 @@
+{
+  "storeName": "Costco Wholesale",
+  "storeLocation": "Yorba Linda #445",
+  "storeAddress": "22633 Savi Ranch Parkway, Yorba Linda, CA 92886",
+  "storePhone": "(714) 282-6650",
+  "latitude": 33.8886,
+  "longitude": -117.7653,
+  "purchaseDate": "2026.01.03",
+  "purchaseTime": "17:03",
+  "memberNumber": "9F Member 111826788760",
+  "items": [
+    {
+      "productName": "KS Sparkling",
+      "itemCode": "4164501",
+      "price": "11.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "8000000000",
+      "price": "1.75USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Modelo Espec",
+      "itemCode": "128935",
+      "price": "26.09USD",
+      "amount": "1",
+      "ageVerification": "Date of Birth Keyed"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "6000000000",
+      "price": "1.20USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org FR Eggs",
+      "itemCode": "1068083",
+      "price": "7.69USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org FR Eggs",
+      "itemCode": "1068083",
+      "price": "7.69USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Water Gal",
+      "itemCode": "931484",
+      "price": "5.49USD",
+      "amount": "1"
+    },
+    {
+      "productName": "CA Redemp VA",
+      "itemCode": "9900000000",
+      "price": "0.60USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Org Whole Milk",
+      "itemCode": "1743030",
+      "price": "15.89USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Red Grapes",
+      "itemCode": "5276",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Potatoes",
+      "itemCode": "331100",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Green Grapes",
+      "itemCode": "47825",
+      "price": "9.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "4LB Honycrsp",
+      "itemCode": "6659",
+      "price": "8.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Fresh Garlic",
+      "itemCode": "25949",
+      "price": "6.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "KS Org Grnla",
+      "itemCode": "2222019",
+      "price": "8.89USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Neutrogena",
+      "itemCode": "1806649",
+      "price": "19.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Instant Savings",
+      "itemCode": "0000370170",
+      "price": "-5.00USD",
+      "amount": "1",
+      "linkedItem": "1806649"
+    },
+    {
+      "productName": "Tort Tilapia",
+      "itemCode": "451297",
+      "price": "15.99USD",
+      "amount": "1"
+    },
+    {
+      "productName": "Org Bananas",
+      "itemCode": "2619",
+      "price": "2.49USD",
+      "amount": "1"
+    }
+  ],
+  "totalItems": 15,
+  "subtotal": "160.70USD",
+  "tax": "4.34USD",
+  "taxRate": "7.75%",
+  "total": "165.04USD",
+  "instantSavings": "5.00USD",
+  "paymentMethod": "Costco Visa",
+  "cardLastFour": "8424",
+  "transactionId": "600300004078",
+  "appNumber": "92791C",
+  "sequenceNumber": "4078",
+  "cashier": "Elizabeth M",
+  "operatorNumber": "OP#: 179",
+  "warehouseNumber": "445",
+  "terminalNumber": "4",
+  "transactionNumber": "433"
+}

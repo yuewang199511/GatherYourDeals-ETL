@@ -1,0 +1,99 @@
+{
+  "storeName": "Target",
+  "storeLocation": "Anaheim Hills",
+  "storeAddress": "8148 E Santa Ana Canyon Rd, Anaheim, California 92808-1105",
+  "storePhone": "714-921-9091",
+  "latitude": 33.8487,
+  "longitude": -117.7484,
+  "purchaseDate": "2025.10.06",
+  "purchaseTime": "10:12 PM",
+  "items": [
+    {
+      "productName": "Purely Eliz",
+      "itemCode": "231130421",
+      "price": "5.49USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Campbells",
+      "itemCode": "212180163",
+      "price": "1.99USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Campbells",
+      "itemCode": "212180422",
+      "price": "1.99USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Campbells",
+      "itemCode": "212180069",
+      "price": "1.99USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Campbells",
+      "itemCode": "212180160",
+      "price": "1.99USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Dollypartons",
+      "itemCode": "270020263",
+      "price": "4.29USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "PF Chang Nood",
+      "itemCode": "270020577",
+      "price": "4.99USD",
+      "amount": "1",
+      "category": "Grocery",
+      "taxCode": "NF"
+    },
+    {
+      "productName": "Essie",
+      "itemCode": "052063193",
+      "price": "14.59USD",
+      "amount": "1",
+      "category": "Health and Beauty",
+      "taxCode": "T"
+    },
+    {
+      "productName": "Essie",
+      "itemCode": "052066389",
+      "price": "12.99USD",
+      "amount": "1",
+      "category": "Health and Beauty",
+      "taxCode": "T"
+    }
+  ],
+  "totalItems": 9,
+  "subtotal": "50.31USD",
+  "taxableAmount": "27.58USD",
+  "tax": "2.14USD",
+  "taxRate": "7.75%",
+  "total": "52.45USD",
+  "paymentMethod": "Visa Credit",
+  "cardLastFour": "8424",
+  "authCode": "91276C",
+  "receiptNumber": "REC#2-5279-0677-0076-4859-5",
+  "surveyInfo": {
+    "website": "informtarget.com",
+    "userId": "7472 0932 3992",
+    "password": "351 405"
+  }
+}

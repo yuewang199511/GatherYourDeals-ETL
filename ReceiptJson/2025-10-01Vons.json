@@ -1,0 +1,92 @@
+{
+  "storeName": "Vons",
+  "storeNumber": "2216",
+  "storeDirector": "Darlene Harlan",
+  "storeAddress": "8010 East Santa Ana Cyn, Anaheim Hills, CA 92808",
+  "storePhoneMain": "(714) 282-7064",
+  "storePhoneRx": "(714) 282-7056",
+  "latitude": 33.8453,
+  "longitude": -117.7512,
+  "purchaseDate": "2025.10.01",
+  "purchaseTime": "17:34",
+  "cashier": "Jael",
+  "items": [
+    {
+      "productName": "OPN Nat Granola",
+      "itemCode": "7989311116",
+      "originalPrice": "4.99USD",
+      "memberSavings": "0.20USD",
+      "price": "4.79USD",
+      "amount": "1",
+      "category": "Grocery"
+    },
+    {
+      "productName": "Granola Blubry Flx",
+      "itemCode": "7989340589",
+      "originalPrice": "4.99USD",
+      "memberSavings": "0.20USD",
+      "price": "4.79USD",
+      "amount": "1",
+      "category": "Grocery"
+    },
+    {
+      "productName": "Lucerne Milk 1% LF",
+      "itemCode": "2113007244",
+      "originalPrice": "2.99USD",
+      "memberSavings": "0.20USD",
+      "price": "2.79USD",
+      "amount": "1",
+      "category": "Refrig/Frozen"
+    },
+    {
+      "productName": "Bonduelle Bistro",
+      "itemCode": "7774529186",
+      "originalPrice": "4.49USD",
+      "memberSavings": "1.16USD",
+      "price": "3.33USD",
+      "amount": "1",
+      "category": "Produce"
+    },
+    {
+      "productName": "Bonduelle Bistro",
+      "itemCode": "7774529651",
+      "originalPrice": "4.49USD",
+      "memberSavings": "1.16USD",
+      "price": "3.33USD",
+      "amount": "1",
+      "category": "Produce"
+    },
+    {
+      "productName": "Bonduelle Bistro",
+      "itemCode": "7774529744",
+      "originalPrice": "4.49USD",
+      "memberSavings": "1.16USD",
+      "price": "3.33USD",
+      "amount": "1",
+      "category": "Produce"
+    },
+    {
+      "productName": "Donation",
+      "itemCode": "22986",
+      "originalPrice": "5.00USD",
+      "memberSavings": "0.00USD",
+      "price": "5.00USD",
+      "amount": "1",
+      "category": "Miscellaneous"
+    }
+  ],
+  "totalItems": 7,
+  "totalMemberSavings": "4.08USD",
+  "tax": "0.00USD",
+  "total": "27.36USD",
+  "paymentMethod": "Visa Credit",
+  "cardLastFour": "2032",
+  "referenceNumber": "923410420320",
+  "authCode": "00911043",
+  "barcode": "0022160050227251001734",
+  "promotion": {
+    "name": "GameOn Plays",
+    "description": "Earn GameOn Plays when you shop participating items throughout the store",
+    "validThrough": "2025.12.09"
+  }
+}
