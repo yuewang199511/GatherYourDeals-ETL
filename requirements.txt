@@ -1,0 +1,13 @@
+openai>=1.30.0                      # OpenAI-compatible client for OpenRouter (Step 2)
+python-dotenv>=1.0.0               # .env loading
+azure-ai-documentintelligence>=1.0.0  # Azure Document Intelligence SDK (Step 1)
+
+# Optional — only needed if receipt photos are HEIC (iPhone default format)
+pillow>=10.0.0
+pillow-heif>=0.14.0
+
+# Optional — only needed for --report charts
+matplotlib>=3.8.0
+
+# GatherYourDeals SDK (not on PyPI — install separately):
+#   pip install git+https://github.com/yuewang199511/GatherYourDeals-SDK.git

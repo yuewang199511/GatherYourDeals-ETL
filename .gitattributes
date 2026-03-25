@@ -1,0 +1,8 @@
+# Track receipt photos with Git LFS so large binaries don't bloat the repo
+# and are safely stored in remote object storage (GitHub LFS).
+# Setup once: git lfs install
+images/*.jpg  filter=lfs diff=lfs merge=lfs -text
+images/*.jpeg filter=lfs diff=lfs merge=lfs -text
+images/*.png  filter=lfs diff=lfs merge=lfs -text
+images/*.webp filter=lfs diff=lfs merge=lfs -text
+images/*.heic filter=lfs diff=lfs merge=lfs -text

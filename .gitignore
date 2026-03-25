@@ -1,0 +1,32 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+dist/
+build/
+
+# ETL generated output
+output/*.json
+logs/*.jsonl
+reports/*.md
+reports/*.png
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
