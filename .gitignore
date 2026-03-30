@@ -11,10 +11,13 @@ dist/
 build/
 
 # ETL generated output
-output/*.json
+output/
 logs/*.jsonl
-reports/*.md
-reports/*.png
+reports/Drafts/
+reports/provider-charts/
+
+# Experiment temp files
+.baseline_start
 
 # macOS
 .DS_Store
@@ -34,3 +37,9 @@ desktop.ini
 # Personal Data
 Receipts/
 ReceiptJson/
+ground_truth/
+
+# Local docs
+docs/
+
+.railtracks

@@ -13,8 +13,8 @@ Select one via the `LLM_PROVIDER` environment variable or the `--provider` CLI f
 
 | Provider | Env var | Default model | Cost |
 |----------|---------|---------------|------|
-| OpenRouter | `OPENROUTER_API_KEY` | `anthropic/claude-3-haiku` | Free |
-| Claude (Anthropic) | `ANTHROPIC_API_KEY` | `claude-haiku-4-5-20251001` | Paid |
+| OpenRouter | `OPENROUTER_API_KEY` | `anthropic/claude-haiku-4.5` | ~$0.004/receipt |
+| CLOD | `CLOD_API_KEY` | `Qwen/Qwen2.5-7B-Instruct-Turbo` | ~$0.0004/receipt (sponsored) |
 
 ---
 
@@ -22,18 +22,18 @@ Select one via the `LLM_PROVIDER` environment variable or the `--provider` CLI f
 
 ```env
 # ── LLM Provider ──────────────────────────────────────────────────
-# Which provider to use: "openrouter" (default) or "claude"
+# Which provider to use: "openrouter" (default) or "clod"
 LLM_PROVIDER=openrouter
 
 # Step 2a — OpenRouter
 # Sign up at openrouter.ai → Keys → Create Key
 OPENROUTER_API_KEY=sk-or-v1-...
-ETL_MODEL=anthropic/claude-3-haiku
+ETL_MODEL=anthropic/claude-haiku-4.5
 
-# Step 2b — Claude / Anthropic  (set LLM_PROVIDER=claude to use)
-# Sign up at console.anthropic.com → API Keys
-ANTHROPIC_API_KEY=sk-ant-...
-# ETL_MODEL=claude-haiku-4-5-20251001
+# Step 2b — CLOD  (set LLM_PROVIDER=clod to use)
+# Sign up at app.clod.io → API Keys → Create Key
+# CLOD_API_KEY=<your-key>
+# ETL_MODEL=Qwen/Qwen2.5-7B-Instruct-Turbo
 ```
 
 ---
@@ -41,20 +41,20 @@ ANTHROPIC_API_KEY=sk-ant-...
 ## CLI Usage
 
 ```bash
-# OpenRouter (default, uses LLM_PROVIDER from .env)
+# OpenRouter (default)
 python3 etl.py receipt.jpg --user alice --no-upload
 
-# OpenRouter with explicit provider and model
-python3 etl.py receipt.jpg --user alice --provider openrouter --model anthropic/claude-3-haiku --no-upload
+# OpenRouter with explicit model
+python3 etl.py receipt.jpg --user alice --provider openrouter --model anthropic/claude-haiku-4.5 --no-upload
 
-# Claude (Anthropic native API)
-python3 etl.py receipt.jpg --user alice --provider claude --model claude-haiku-4-5-20251001 --no-upload
+# CLOD
+python3 etl.py receipt.jpg --user alice --provider clod --model Qwen/Qwen2.5-7B-Instruct-Turbo --no-upload
 
 # Whole directory
-python3 etl.py ./Receipts/converted/ --user alice --no-upload
+python3 etl.py Receipts/ --user alice --no-upload
 
-# With upload to GYD API
-python3 etl.py ./Receipts/converted/ --user alice
+# With upload to GYD data service
+python3 etl.py Receipts/ --user alice
 ```
 
 Model resolution order: `--model` flag → `ETL_MODEL` env var → provider default.
@@ -92,21 +92,33 @@ for m in sorted(data['data'], key=lambda x: x['id']):
 
 ## Model Pricing Reference
 
-| Model | Provider | Input (per 1M) | Output (per 1M) |
-|-------|----------|----------------|-----------------|
-| `anthropic/claude-3-haiku` | OpenRouter | $0.00 | $0.00 |
-| `deepseek/deepseek-chat` | OpenRouter | $0.00 | $0.00 |
-| `google/gemini-2.0-flash` | OpenRouter | $0.10 | $0.40 |
-| `openai/gpt-4o-mini` | OpenRouter | $0.15 | $0.60 |
-| `openai/gpt-4o` | OpenRouter | $2.50 | $10.00 |
-| `anthropic/claude-3.5-sonnet` | OpenRouter | $3.00 | $15.00 |
-| `claude-haiku-4-5-20251001` | Anthropic | $0.80 | $4.00 |
-| `claude-sonnet-4-6` | Anthropic | $3.00 | $15.00 |
-| `claude-opus-4-6` | Anthropic | $15.00 | $75.00 |
+| Model | Provider | Input (per 1M) | Output (per 1M) | Notes |
+|-------|----------|----------------|-----------------|-------|
+| `anthropic/claude-haiku-4.5` | OpenRouter | $1.00 | $5.00 | Current default |
+| `Qwen/Qwen2.5-7B-Instruct-Turbo` | CLOD | $0.30 | $0.12 | 60% discount applied; output dynamically priced, cap ~$0.318/M |
+| `google/gemini-2.0-flash` | OpenRouter | $0.10 | $0.40 | |
+| `openai/gpt-4o-mini` | OpenRouter | $0.15 | $0.60 | |
 
 ---
 
 ## Change Log
+
+### 2026-03-29 — Provider overhaul, cost logging fixes, new metrics
+
+**Changes:**
+
+| Area | Change |
+|------|--------|
+| Provider | Replaced Claude/Anthropic native provider with CLOD (`Qwen/Qwen2.5-7B-Instruct-Turbo`) as the alternative LLM provider |
+| Model slug | `anthropic/claude-haiku-4-5` → `anthropic/claude-haiku-4.5` (correct OpenRouter slug) |
+| ADI cost | Always logged at S0 rate ($0.0015/page) for production-accurate cost tracking |
+| OpenRouter cost | Added `_fetch_openrouter_cost()` with 0.5s delay + 3 retries; token-based fallback via `_OR_PRICING` when API unavailable |
+| CLOD cost | Added `_CLOD_PRICING` token-based fallback ($0.30/$0.12 per M tokens) when API response omits cost |
+| Store normalization | Added `normalize_store_name()` — second LLM call matches raw extracted store name to canonical ground truth list |
+| New log event | `pipeline_complete` — logs end-to-end wall time per receipt (OCR + LLM + geocode + normalization) |
+| Baseline report | Now includes E2E P50/P95, throughput (receipts/min), and failure rate per provider |
+| Baseline report | Field-level accuracy (`--eval`) automatically appended to `--baseline-report` output |
+| Baseline runs | `run_baseline.sh` updated to 3× runs per provider for statistical significance |
 
 ### 2026-03-25 — OpenRouter provider fixes
 
