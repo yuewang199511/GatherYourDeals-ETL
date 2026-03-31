@@ -86,13 +86,14 @@ AZURE_DI_KEY=<your-key>
 
 # Step 2 — LLM provider: openrouter (default) or clod
 LLM_PROVIDER=openrouter
-ETL_MODEL=anthropic/claude-haiku-4.5
 
-# OpenRouter
+# Option A — OpenRouter
 OPENROUTER_API_KEY=sk-or-v1-...
+OR_DEFAULT_MODEL=anthropic/claude-haiku-4.5
 
-# CLOD (set LLM_PROVIDER=clod to use)
+# Option B — CLOD (set LLM_PROVIDER=clod to use)
 # CLOD_API_KEY=<your-key>
+CLOD_DEFAULT_MODEL=Qwen/Qwen2.5-7B-Instruct-Turbo
 
 # Step 3 — Azure Maps geocoding (optional — leave blank to skip)
 AZURE_MAPS_KEY=<your-key>
@@ -109,16 +110,16 @@ GYD_PASSWORD=
 
 ```bash
 # Single receipt
-python etl.py Receipts/2026-01-03Costco.jpg --user xxx --no-upload
+python etl.py Receipts/2026-01-03Costco.jpg --user $GYD_USERNAME --no-upload
 
 # Whole directory
-python etl.py Receipts/ --user xxx --no-upload
+python etl.py Receipts/ --user $GYD_USERNAME --no-upload
 
 # Use CLOD instead of OpenRouter
-python etl.py Receipts/ --user xxx --provider clod --no-upload
+python etl.py Receipts/ --user $GYD_USERNAME --provider clod --no-upload
 
 # With upload to GYD data service (set GYD_* in .env first)
-python etl.py Receipts/ --user xxx
+python etl.py Receipts/ --user $GYD_USERNAME
 
 # Full baseline experiment (both providers, 3× each)
 bash run_baseline.sh
@@ -145,7 +146,7 @@ railtracks viz
 |------|---------|-------------|
 | `--user USER` | `unknown` | Username written into the output JSON |
 | `--provider {openrouter,clod}` | `LLM_PROVIDER` env var | LLM backend to use |
-| `--model MODEL` | `ETL_MODEL` env var | Model ID — overrides provider default |
+| `--model MODEL` | `OR_DEFAULT_MODEL` env var | Model ID — overrides provider default |
 | `--no-upload` | off | Skip upload to GYD data service |
 | `--baseline-report` | off | Structured provider egress report scoped to last run |
 | `--report` | off | Cumulative usage report + chart from all logs |
@@ -291,7 +292,7 @@ pip install "railtracks[cli]" --break-system-packages
 
 ```bash
 # 1. Run the ETL as normal
-python etl.py Receipts/ --user xxx --no-upload
+python etl.py Receipts/ --user $GYD_USERNAME --no-upload
 
 # 2. Open the viz dashboard
 railtracks viz

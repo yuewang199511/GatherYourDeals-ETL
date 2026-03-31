@@ -109,7 +109,7 @@ _DEFAULT_MODELS = {
     "openrouter": "anthropic/claude-haiku-4.5",
     "clod":       "Qwen/Qwen2.5-7B-Instruct-Turbo",
 }
-DEFAULT_MODEL = os.getenv("ETL_MODEL", _DEFAULT_MODELS.get(LLM_PROVIDER, "google/gemini-2.0-flash-exp:free"))
+DEFAULT_MODEL = os.getenv("OR_DEFAULT_MODEL", _DEFAULT_MODELS.get(LLM_PROVIDER, "google/gemini-2.0-flash-exp:free"))
 
 GYD_SERVER_URL = os.getenv("GYD_SERVER_URL", "http://localhost:8080/api/v1")
 GYD_USERNAME   = os.getenv("GYD_USERNAME", "")
@@ -803,12 +803,12 @@ def flatten_receipt(receipt: dict) -> list[dict]:
 def main():
     p = argparse.ArgumentParser(description="GatherYourDeals receipt ETL (ADI + LLM)")
     p.add_argument("path",        nargs="?", help="Image file or directory")
-    p.add_argument("--user",      default="unknown",     help="Username for JSON metadata")
+    p.add_argument("--user",      default=GYD_USERNAME or "unknown", help="Username for JSON metadata (defaults to GYD_USERNAME env var)")
     p.add_argument("--provider",  default=LLM_PROVIDER,
                    choices=["openrouter", "clod"],
                    help="LLM provider (default: LLM_PROVIDER env var)")
     p.add_argument("--model",     default=None,
-                   help="Model ID — defaults to ETL_MODEL env var or provider default")
+                   help="Model ID — defaults to OR_DEFAULT_MODEL env var or provider default")
     p.add_argument("--no-upload",         action="store_true", help="Skip SDK upload")
     p.add_argument("--report",            action="store_true", help="Generate usage report")
     p.add_argument("--compare",           action="store_true",
@@ -820,7 +820,7 @@ def main():
     args = p.parse_args()
 
     # Resolve model: CLI > provider default (when --provider explicit) > env > global default
-    resolved_model = args.model or _DEFAULT_MODELS.get(args.provider) or os.getenv("ETL_MODEL") or DEFAULT_MODEL
+    resolved_model = args.model or _DEFAULT_MODELS.get(args.provider) or os.getenv("OR_DEFAULT_MODEL") or DEFAULT_MODEL
 
     if args.report:
         report(); return

@@ -28,12 +28,12 @@ LLM_PROVIDER=openrouter
 # Step 2a — OpenRouter
 # Sign up at openrouter.ai → Keys → Create Key
 OPENROUTER_API_KEY=sk-or-v1-...
-ETL_MODEL=anthropic/claude-haiku-4.5
+OR_DEFAULT_MODEL=anthropic/claude-haiku-4.5
 
 # Step 2b — CLOD  (set LLM_PROVIDER=clod to use)
 # Sign up at app.clod.io → API Keys → Create Key
 # CLOD_API_KEY=<your-key>
-# ETL_MODEL=Qwen/Qwen2.5-7B-Instruct-Turbo
+# OR_DEFAULT_MODEL=Qwen/Qwen2.5-7B-Instruct-Turbo
 ```
 
 ---
@@ -42,22 +42,22 @@ ETL_MODEL=anthropic/claude-haiku-4.5
 
 ```bash
 # OpenRouter (default)
-python3 etl.py receipt.jpg --user alice --no-upload
+python3 etl.py receipt.jpg --user $GYD_USERNAME --no-upload
 
 # OpenRouter with explicit model
-python3 etl.py receipt.jpg --user alice --provider openrouter --model anthropic/claude-haiku-4.5 --no-upload
+python3 etl.py receipt.jpg --user $GYD_USERNAME --provider openrouter --model anthropic/claude-haiku-4.5 --no-upload
 
 # CLOD
-python3 etl.py receipt.jpg --user alice --provider clod --model Qwen/Qwen2.5-7B-Instruct-Turbo --no-upload
+python3 etl.py receipt.jpg --user $GYD_USERNAME --provider clod --model Qwen/Qwen2.5-7B-Instruct-Turbo --no-upload
 
 # Whole directory
-python3 etl.py Receipts/ --user alice --no-upload
+python3 etl.py Receipts/ --user $GYD_USERNAME --no-upload
 
 # With upload to GYD data service
-python3 etl.py Receipts/ --user alice
+python3 etl.py Receipts/ --user $GYD_USERNAME
 ```
 
-Model resolution order: `--model` flag → `ETL_MODEL` env var → provider default.
+Model resolution order: `--model` flag → `OR_DEFAULT_MODEL` env var → provider default.
 
 ---
 
@@ -68,7 +68,7 @@ The following models are confirmed free as of 2026-03-25:
 
 | Model ID | Notes |
 |----------|-------|
-| `anthropic/claude-3-haiku` | **Current default** — best accuracy for receipts |
+| `anthropic/claude-haiku-4.5` | **Current default** — best accuracy for receipts |
 | `deepseek/deepseek-chat` | Good alternative |
 | `amazon/nova-lite-v1` | Fast, reliable |
 | `amazon/nova-micro-v1` | Fastest, smallest |
@@ -192,7 +192,7 @@ all amounts are quantities. Output matches ground truth.
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `No endpoints found for google/gemini-2.0-flash-exp:free` | Model retired | Change `ETL_MODEL` to `anthropic/claude-3-haiku` |
+| `No endpoints found for google/gemini-2.0-flash-exp:free` | Model retired | Change `OR_DEFAULT_MODEL` to `anthropic/claude-haiku-4.5` |
 | `OPENROUTER_API_KEY not set` | Missing `.env` entry | Add key to `.env` |
 | `ANTHROPIC_API_KEY not set` | Using `--provider claude` without key | Add `ANTHROPIC_API_KEY` to `.env` |
 | `Anthropic SDK not installed` | Missing package | `pip install anthropic` |

@@ -39,7 +39,7 @@ Open `.env` and fill in:
 
 ```
 OPENROUTER_API_KEY=sk-or-v1-your-key-here
-ETL_MODEL=google/gemini-2.0-flash-exp:free
+OR_DEFAULT_MODEL=google/gemini-2.0-flash-exp:free
 ```
 
 ---
@@ -103,7 +103,7 @@ If you hit rate limits when scaling to more receipts, upgrade to the paid model:
 
 In `.env`, change:
 ```
-ETL_MODEL=google/gemini-2.0-flash
+OR_DEFAULT_MODEL=google/gemini-2.0-flash
 ```
 
 This costs approximately **$0.10 per 1M input tokens / $0.40 per 1M output tokens**.
