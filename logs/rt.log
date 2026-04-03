@@ -4254,3 +4254,6 @@ json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
 2026-04-02 17:21:19,822 - 63.693 - INFOs - RT.railtracks.state.state - START CREATED receipt_pipeline
 2026-04-02 17:22:37,275 - 141.147 - INFOs - RT.railtracks.state.state - receipt_pipeline DONE
 2026-04-02 17:22:37,294 - 141.165 - INFOs - RT.railtracks._session - Saving execution info to .railtracks/data/sessions/receipt_etl_942ecb3e-9b17-4209-aadf-d9241719e6b9.json
+2026-04-02 17:39:51,047 - 67.396 - INFOs - RT.railtracks.state.state - START CREATED receipt_pipeline
+2026-04-02 17:40:40,247 - 116.596 - INFOs - RT.railtracks.state.state - receipt_pipeline DONE
+2026-04-02 17:40:40,281 - 116.631 - INFOs - RT.railtracks._session - Saving execution info to .railtracks/data/sessions/receipt_etl_c907b936-5991-41b2-9fc4-dd1848c47494.json

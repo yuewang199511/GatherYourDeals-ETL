@@ -250,6 +250,7 @@ Each element of items must have exactly these fields:
 - purchaseDate must be the transaction date, formatted YYYY.MM.DD. If the year looks implausible (before 2020) you are likely reading a receipt number, time, or barcode — re-examine the receipt for the correct date.
 - price is the total amount charged for that line item as shown in the right-hand price column. Do not use per-unit rates, per-oz prices, or any divided amount. Always include the currency code: "4.79USD" not "4.79".
 - amount is a count or weight only — never a price. Strip unrecognised unit codes down to the bare number.
+- Weight-priced items: some receipts print "1.160 kg @ $1.72/kg  2.00" — set amount to the weight ("1.160kg") and price to the total charged ("2.00CAD"), not the per-kg rate.
 - If a markdown table is present, each row is one line item — do not merge or split rows.
 - Column anchoring: each receipt row follows [ITEM NAME] [QTY optional] [PRICE]. Prices are always right-aligned — do not assign a left- or center-column value as a price. Do not assign a right-column value as a quantity.
 
@@ -749,20 +750,60 @@ def _split_ocr_into_chunks(ocr_text: str) -> list[str]:
     of overlap to prevent cutting a multi-line item row.
     """
     _SPATIAL_MARKER = "\n---\n## SPATIAL LAYOUT\n"
-    _DATE_MDY = re.compile(r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b')  # M/D/YYYY or MM/DD/YYYY
+    _DATE_MDY   = re.compile(r'\b(\d{1,2})/(\d{1,2})/(\d{4})\b')  # MM/DD/YYYY
+    _DATE_SHORT = re.compile(r'\b(\d{2})/(\d{2})/(\d{2})\b')       # YY/MM/DD or DD/MM/YY
+
+    def _garbled(line: str) -> bool:
+        """True when a line is unlikely to be useful receipt header text.
+
+        Catches two common noise patterns:
+          - Low alphanumeric density (symbols/punctuation dominate)
+          - Bleed-through / reversed text: starts lowercase with no digits
+            (real store-name/address lines always start with a capital or digit)
+          - Lines starting with a non-alphanumeric character and containing no digits
+        """
+        s = line.strip()
+        if not s:
+            return True
+        has_digit = any(c.isdigit() for c in s)
+        alnum_ratio = sum(c.isalnum() or c.isspace() for c in s) / len(s)
+        if alnum_ratio < 0.55:
+            return True
+        if s[0].islower() and not has_digit:
+            return True
+        if not s[0].isalnum() and not has_digit:
+            return True
+        return False
+
+    def _extract_date(text: str) -> str | None:
+        """Return YYYY.MM.DD from text, supporting MM/DD/YYYY and YY/MM/DD formats."""
+        m = _DATE_MDY.search(text)
+        if m:
+            mon, day, yr = m.group(1), m.group(2), m.group(3)
+            return f"{yr}.{mon.zfill(2)}.{day.zfill(2)}"
+        m = _DATE_SHORT.search(text)
+        if m:
+            a, b, c = int(m.group(1)), int(m.group(2)), int(m.group(3))
+            # Determine format: the year component must be ≤ 99 and > 12 to be
+            # distinguishable.  If first or last field > 12 it's the year (2-digit).
+            if a > 12:          # YY/MM/DD
+                return f"20{a:02d}.{b:02d}.{c:02d}"
+            elif c > 12:        # MM/DD/YY  (e.g. 02/21/26)
+                return f"20{c:02d}.{a:02d}.{b:02d}"
+            # Ambiguous (all ≤ 12); skip rather than guess
+        return None
+
     if _SPATIAL_MARKER in ocr_text:
         raw_part, spatial_part = ocr_text.split(_SPATIAL_MARKER, 1)
-        # First 3 raw lines = store name / address / membership line (safe context).
-        # Avoid lines 3-5 which can contain price/item data on some receipts.
         raw_lines = raw_part.split('\n')
-        header    = raw_lines[:3]
-        # Scan the full raw OCR for a purchase date (MM/DD/YYYY) and inject it
-        # into the header so every chunk has the correct date.  Without this,
-        # small models hallucinate dates when the date only appears in a later chunk.
-        dm = _DATE_MDY.search(raw_part)
-        if dm:
-            m_val, d_val, y_val = dm.group(1), dm.group(2), dm.group(3)
-            header.append(f"Purchase date: {y_val}.{m_val.zfill(2)}.{d_val.zfill(2)}")
+        # Filter garbled lines (reversed/bleed-through text) so the header
+        # only contains clean store-name / address lines.
+        clean_lines = [l for l in raw_lines[:10] if not _garbled(l)]
+        header = clean_lines[:3]
+        # Inject purchase date so every chunk has it (prevents hallucination).
+        date_str = _extract_date(raw_part)
+        if date_str:
+            header.append(f"Purchase date: {date_str}")
         body_lines = spatial_part.split('\n')
     else:
         lines  = ocr_text.split('\n')
@@ -990,6 +1031,24 @@ def _validate_and_fix_items(items: list[dict], currency: str = "USD") -> list[di
     return fixed
 
 
+_CURRENCY_MARKERS = [
+    (re.compile(r'\bCAD\b|\bCAD\$|C\$|\$CAD', re.IGNORECASE), "CAD"),
+    (re.compile(r'\bGBP\b|£',                                  re.IGNORECASE), "GBP"),
+    (re.compile(r'\bEUR\b|€',                                  re.IGNORECASE), "EUR"),
+]
+
+
+def _detect_currency_from_ocr(ocr_text: str) -> str | None:
+    """
+    Scan OCR text for explicit currency markers and return the currency code.
+    Returns None when no non-USD marker is found (caller should default to USD).
+    """
+    for pattern, code in _CURRENCY_MARKERS:
+        if pattern.search(ocr_text):
+            return code
+    return None
+
+
 # Matches lines that look like a street address: start with a number followed by
 # a street name, optionally followed by city/state/ZIP on the same or next line.
 _STREET_LINE = re.compile(
@@ -1108,7 +1167,10 @@ def structure(ocr_text: str, image_path: Path, user_name: str,
         result = _merge_chunk_results(chunk_results)
 
         # Deterministic post-processing: drop bad rows, fix column swaps
-        currency = result.get("currency") or "USD"
+        # Override LLM-extracted currency with deterministic OCR scan so
+        # small models that default to "USD" are corrected for CA/GB/EU receipts.
+        currency = _detect_currency_from_ocr(ocr_text) or result.get("currency") or "USD"
+        result["currency"] = currency
         result["items"] = _validate_and_fix_items(result.get("items", []), currency)
         result["totalItems"] = len(result["items"])
 

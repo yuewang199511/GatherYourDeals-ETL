@@ -120,7 +120,7 @@ GYD_SERVER_URL=http://localhost:8080/api/v1
 GYD_ACCESS_TOKEN=
 
 # ETL service username written into receipt JSON metadata
-ETL_DEFAULT_USER=lkim
+ETL_DEFAULT_USER=user
 ```
 
 ---
@@ -165,96 +165,7 @@ The `source` field accepts any image address — HTTP/HTTPS URL or local file pa
 | `422` | Source reachable but OCR / LLM processing failed |
 | `500` | Upload to GYD service failed |
 
-### Deploy to Railway
-
-Push to GitHub — Railway auto-detects the `Procfile` and deploys:
-
-```
-web: uvicorn app:app --host 0.0.0.0 --port $PORT
-```
-
-Set your environment variables (`AZURE_DI_ENDPOINT`, `AZURE_DI_KEY`, `OPENROUTER_API_KEY`, etc.) in the Railway dashboard under **Variables**.
-
 ---
-
-## Infrastructure
-
-### Docker (local)
-
-```bash
-# Build and start
-docker compose up --build
-
-# Run in background
-docker compose up -d
-
-# Stop
-docker compose down
-```
-
-The service starts on `http://localhost:8080`. Logs and output are mounted as volumes so they persist outside the container.
-
-### Docker (manual)
-
-```bash
-docker build -t gyd-etl .
-docker run -p 8080:8080 --env-file .env gyd-etl
-```
-
-### Deploy to Azure Container Apps
-
-Requires [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli) and Docker Desktop running locally.
-
-```bash
-# One-time login
-az login
-
-# First deploy (~3 min — builds image, creates Container App, returns public URL)
-bash deploy.sh
-
-# Redeploy after code changes
-bash deploy.sh --update
-```
-
-`deploy.sh` reads your `.env` and passes all keys as environment variables to the Container App. No Terraform needed.
-
-> **Cost**: Azure Container Apps free grant covers 180,000 vCPU-seconds/month — enough to run the service continuously. An Azure Container Registry (Basic) is created automatically at ~$0.17/day; covered by student credits.
-
-### After deploying
-
-**1. Verify it's live:**
-```bash
-curl https://<your-app>.<region>.azurecontainerapps.io/health
-# → {"status": "ok"}
-```
-
-**2. Test with a real receipt:**
-```bash
-curl -X POST https://<your-app>.<region>.azurecontainerapps.io/etl \
-  -H "Content-Type: application/json" \
-  -d '{"source": "https://<your-storage>/receipts/2026-01-03Costco.jpg"}'
-```
-
-**3. Run Experiment 1 against the live service** — concurrent HTTP requests to `/etl`, no mock needed:
-```bash
-python experiments/exp1_worker_scaling.py --live https://<your-url>/etl
-```
-
----
-
-### Scale workers locally
-
-```bash
-# Run 4 container instances behind a single port (requires a load balancer)
-docker compose up --scale etl=4
-```
-
-Or use uvicorn's built-in worker pool (single container, multiple processes):
-
-```bash
-docker run -p 8080:8080 --env-file .env gyd-etl \
-  uvicorn app:app --host 0.0.0.0 --port 8080 --workers 4
-```
 
 ---
 
@@ -399,58 +310,6 @@ railtracks viz
 | CLOD `Qwen/Qwen2.5-7B-Instruct-Turbo` | $0.30/$0.12 per M tokens | ~$0.0003/receipt (sponsored) |
 
 > ADI cost is always logged at the S0 rate for accurate production cost tracking. Free tier quotas are not subtracted.
-
----
-
-## Project structure
-
-```
-# Service
-app.py                  # FastAPI service — POST /etl, GET /health
-openapi.yaml            # OpenAPI 3.0.3 schema for the ETL service
-etl.py                  # Core pipeline (ADI OCR → LLM → geocode → GYD upload)
-etl_logger.py           # Structured JSONL logging
-upload_registry.py      # Upload ID registry shared by etl.py and scripts/
-reporting.py            # Reporting (--baseline-report, --report, --compare, --eval)
-
-# Infrastructure
-Dockerfile              # Container image definition
-docker-compose.yml      # Local multi-container setup with volume mounts
-.dockerignore           # Excludes venv, receipts, logs from image
-deploy.sh               # Azure Container Apps deploy script
-Procfile                # Railway deploy config
-
-# Config
-.env.example            # Environment variable template
-requirements.txt        # Python dependencies
-
-# Data (git-ignored)
-Receipts/               # Input receipt images
-ground_truth/           # Manually-transcribed reference JSON for each receipt
-output/
-  openrouter-claude-haiku-4.5/     # Output JSON from OpenRouter runs
-  clod-qwen2.5-7b-instruct-turbo/  # Output JSON from CLOD/Qwen runs
-  clod-gemma-3n-e4b-it/            # Output JSON from CLOD/Gemma runs
-  .upload_registry.json            # Maps image stem → uploaded GYD receipt UUIDs
-logs/                   # JSONL structured logs (etl_YYYY-MM-DD.jsonl) + Railtracks rt.log
-reports/                # Experiment results (Drafts/ and provider-charts/ are git-ignored)
-
-# Scripts
-scripts/
-  run_baseline.sh           # Baseline experiment (3 providers × 3 runs)
-  delete_receipts.py        # Personal utility — delete test uploads from GYD database
-
-# Experiments
-experiments/
-  exp1_worker_scaling.py    # Experiment 1 — worker parallelism vs. throughput
-
-# Docs
-docs/
-  CHANGELOG.md                    # Change log
-  distributed_system_proposal.md  # CS6650 final project proposal
-  setup-azure-di.md               # Azure DI setup guide
-  llm-provider-setup.md           # LLM provider config + model change log
-```
 
 ---
 
