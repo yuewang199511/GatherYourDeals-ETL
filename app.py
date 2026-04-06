@@ -118,6 +118,7 @@ def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
                 resp = client.get(source)
                 resp.raise_for_status()
                 tmp_path.write_bytes(resp.content)
+            print(f"  [download] {display_name} — {len(resp.content):,} bytes, content-type: {resp.headers.get('content-type', 'unknown')}")
         except Exception as exc:
             tmp_path.unlink(missing_ok=True)
             raise ValueError(f"Failed to download source: {exc}") from exc
