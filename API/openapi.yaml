@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: ETL Service API
+  description: >
+    Internal ETL service that accepts a remote address and processes it
+    synchronously. No authentication required.
+  version: 1.0.0
+
+servers:
+  - url: https://etl-service.yourdomain.com/v1
+
+paths:
+  /etl:
+    post:
+      summary: Run an ETL process from a remote address
+      description: >
+        Triggers a synchronous ETL process from the given remote address.
+        Blocks until the process completes and returns success or failure.
+      operationId: runEtl
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EtlRequest'
+            example:
+              source: "https://datasource.example.com/data.csv"
+      responses:
+        '200':
+          description: ETL completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EtlResponse'
+              example:
+                success: true
+                message: "ETL completed successfully"
+        '400':
+          description: Bad request — missing or invalid source address
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EtlResponse'
+              example:
+                success: false
+                message: "source address must not be empty"
+        '422':
+          description: ETL failed — source was reachable but processing failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EtlResponse'
+              example:
+                success: false
+                message: "Failed to parse data from source"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EtlResponse'
+              example:
+                success: false
+                message: "Unexpected error during ETL process"
+
+components:
+  schemas:
+    EtlRequest:
+      type: object
+      required:
+        - source
+      properties:
+        source:
+          type: string
+          description: >
+            Remote address to pull data from.
+            Can be any format — URL, S3 path, file path, etc.
+          example: "https://datasource.example.com/data.csv"
+
+    EtlResponse:
+      type: object
+      required:
+        - success
+        - message
+      properties:
+        success:
+          type: boolean
+          description: Whether the ETL process completed successfully
+        message:
+          type: string
+          description: Human-readable result or error description
+          example: "ETL completed successfully"
