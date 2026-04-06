@@ -2294,13 +2294,18 @@ def upload(receipt: dict, run_id: str, token: str | None = None):
             # a usable registry entry for whatever items did land in the DB.
             _registry_save(image_stem, [x.id for x in created])
         except Exception as e:
-            print(f"    [WARN] upload failed for '{item.get('productName')}': {e}")
+            print(f"    [ERROR] upload failed for '{item.get('productName')}': {e}")
             failed += 1
 
     latency_ms = (time.monotonic() - start) * 1000
     log_upload(run_id, image_name, receipt.get("userName", ""),
                len(items), len(created), failed, latency_ms,
                failed == 0, f"{failed} items failed" if failed else None)
+
+    if failed:
+        raise RuntimeError(
+            f"Upload incomplete: {failed}/{len(items)} item(s) failed for '{image_name}'"
+        )
 
     return created
 

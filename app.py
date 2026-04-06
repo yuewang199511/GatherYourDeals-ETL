@@ -29,7 +29,6 @@ import tempfile
 import time
 import re
 import urllib.parse
-import urllib.request
 import uuid
 from pathlib import Path
 
@@ -114,7 +113,11 @@ def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
         tmp_path = Path(tempfile.gettempdir()) / f"{Path(url_filename).stem}_{run_id[:8]}{ext}"
 
         try:
-            urllib.request.urlretrieve(source, str(tmp_path))
+            import httpx
+            with httpx.Client(follow_redirects=True, timeout=60) as client:
+                resp = client.get(source)
+                resp.raise_for_status()
+                tmp_path.write_bytes(resp.content)
         except Exception as exc:
             tmp_path.unlink(missing_ok=True)
             raise ValueError(f"Failed to download source: {exc}") from exc
