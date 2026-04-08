@@ -14,8 +14,9 @@ Single image: the full pipeline (ADI OCR → LLM structuring → geocode → GYD
 runs synchronously and blocks until complete.
 
 Google Drive folder: all image files directly inside the folder are processed in
-sequence.  The folder must be shared as "Anyone with the link can view".
-Requires GOOGLE_API_KEY in .env with the Drive API enabled.
+sequence.  Requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and
+GOOGLE_REFRESH_TOKEN in .env (OAuth 2.0 — run scripts/google_oauth_setup.py
+once to obtain the refresh token).
 
 Run:
     uvicorn app:app --host 0.0.0.0 --port 8000
@@ -24,8 +25,10 @@ Environment (.env):
     Same variables as etl.py — AZURE_DI_*, OPENROUTER_API_KEY / CLOD_API_KEY,
     GYD_SERVER_URL, GYD_ACCESS_TOKEN, etc.
     Additional:
-        ETL_DEFAULT_USER=lkim       # username written into receipt JSON metadata
-        GOOGLE_API_KEY=<key>        # required for Drive folder ingestion
+        ETL_DEFAULT_USER=lkim           # username written into receipt JSON metadata
+        GOOGLE_CLIENT_ID=<id>           # OAuth 2.0 client ID  (Drive folder ingestion)
+        GOOGLE_CLIENT_SECRET=<secret>   # OAuth 2.0 client secret
+        GOOGLE_REFRESH_TOKEN=<token>    # long-lived refresh token
 """
 
 import asyncio
@@ -33,7 +36,6 @@ import json
 import math
 import os
 import random
-import tempfile
 import time
 import re
 import urllib.parse
@@ -50,6 +52,11 @@ from pydantic import BaseModel
 
 import etl as _etl
 from etl_logger import log_pipeline
+
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request as GoogleAuthRequest
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 
 # ---------------------------------------------------------------------------
 # App
@@ -69,7 +76,9 @@ app = FastAPI(
 # ---------------------------------------------------------------------------
 
 _DEFAULT_USER = os.getenv("ETL_DEFAULT_USER", "unknown")
-_GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY", "")
+_GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "")
+_GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET", "")
+_GOOGLE_REFRESH_TOKEN = os.getenv("GOOGLE_REFRESH_TOKEN", "")
 
 _ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".tiff", ".tif", ".bmp"}
 
@@ -101,14 +110,13 @@ class EtlResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
-    """Download a URL to a named temp file, or validate a local path.
+def _resolve_source(source: str) -> tuple[bytes, str]:
+    """Download a URL or read a local path into memory.
 
     Returns:
-        (image_path, display_name, is_temp)
-        image_path:   Path object pointing to the image on disk.
-        display_name: Original filename for use in logs and output/  directory.
-        is_temp:      True if image_path is a temp file the caller must delete.
+        (image_bytes, display_name)
+        image_bytes:  Raw image bytes.
+        display_name: Original filename for use in logs and output/ directory.
 
     Raises ValueError / FileNotFoundError on bad input.
     """
@@ -128,22 +136,17 @@ def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
             url_filename = Path(url_filename).stem + ext
 
         display_name = url_filename
-        tmp_path = Path(tempfile.gettempdir()) / f"{Path(url_filename).stem}_{run_id[:8]}{ext}"
-
         try:
             import httpx
             with httpx.Client(follow_redirects=True, timeout=60) as client:
                 resp = client.get(source)
                 resp.raise_for_status()
-                tmp_path.write_bytes(resp.content)
             print(f"  [download] {display_name} — {len(resp.content):,} bytes, content-type: {resp.headers.get('content-type', 'unknown')}")
+            return resp.content, display_name
         except Exception as exc:
-            tmp_path.unlink(missing_ok=True)
             raise ValueError(f"Failed to download source: {exc}") from exc
 
-        return tmp_path, display_name, True
-
-    # Local path
+    # Local path — read into memory
     p = Path(source)
     if not p.exists():
         raise FileNotFoundError(f"Source path does not exist: {source}")
@@ -152,7 +155,7 @@ def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
             f"Unsupported file type '{p.suffix}'.  "
             f"Accepted: {', '.join(sorted(_ALLOWED_EXTS))}"
         )
-    return p, p.name, False
+    return p.read_bytes(), p.name
 
 
 # ---------------------------------------------------------------------------
@@ -160,26 +163,28 @@ def _resolve_source(source: str, run_id: str) -> tuple[Path, str, bool]:
 # ---------------------------------------------------------------------------
 
 
-def _list_drive_images(folder_id: str) -> list[dict]:
-    """Return all image files directly inside a public Google Drive folder.
-
-    Raises RuntimeError if google-api-python-client is not installed or
-    GOOGLE_API_KEY is not set.
-    """
-    try:
-        from googleapiclient.discovery import build
-    except ImportError:
+def _build_drive_service():
+    """Build an authenticated Drive v3 service from stored OAuth credentials."""
+    if not (_GOOGLE_CLIENT_ID and _GOOGLE_CLIENT_SECRET and _GOOGLE_REFRESH_TOKEN):
         raise RuntimeError(
-            "google-api-python-client is not installed. "
-            "Run: pip install google-api-python-client"
+            "Google Drive OAuth not configured. "
+            "Set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, and GOOGLE_REFRESH_TOKEN in .env "
+            "(run scripts/google_oauth_setup.py once to obtain the refresh token)."
         )
-    if not _GOOGLE_API_KEY:
-        raise RuntimeError(
-            "GOOGLE_API_KEY is not set — required to list Google Drive folders. "
-            "Add it to your .env file."
-        )
+    creds = Credentials(
+        token=None,
+        refresh_token=_GOOGLE_REFRESH_TOKEN,
+        client_id=_GOOGLE_CLIENT_ID,
+        client_secret=_GOOGLE_CLIENT_SECRET,
+        token_uri="https://oauth2.googleapis.com/token",
+        scopes=["https://www.googleapis.com/auth/drive.readonly"],
+    )
+    creds.refresh(GoogleAuthRequest())
+    return build("drive", "v3", credentials=creds)
 
-    service = build("drive", "v3", developerKey=_GOOGLE_API_KEY)
+
+def _list_drive_images(service, folder_id: str) -> list[dict]:
+    """Return all image files directly inside a Google Drive folder."""
     results = service.files().list(
         q=f"'{folder_id}' in parents and trashed=false",
         fields="files(id, name, mimeType)",
@@ -188,9 +193,69 @@ def _list_drive_images(folder_id: str) -> list[dict]:
 
     files = results.get("files", [])
     images = [f for f in files if f.get("mimeType") in _DRIVE_IMAGE_MIME_TYPES]
-    print(f"[drive] folder={folder_id}: {len(images)} image(s) found "
-          f"({len(files)} total files)")
+
+    print(
+        f"[drive/oauth] folder={folder_id}: {len(images)} image(s) found "
+        f"({len(files)} total files)"
+    )
     return images
+
+
+def _download_folder_gdown(folder_url: str) -> list[tuple[bytes, str]]:
+    """Download all image files from a public Drive folder using gdown.
+
+    No API key or OAuth required — folder must be shared as
+    'Anyone with the link can view'.
+
+    Returns a list of (image_bytes, filename) tuples for each image found.
+    """
+    import tempfile
+    import shutil
+
+    try:
+        import gdown
+    except ImportError:
+        raise RuntimeError(
+            "gdown not installed. Run: pip install gdown"
+        )
+
+    tmp_dir = Path(tempfile.mkdtemp(prefix="gyd_drive_"))
+    try:
+        paths = gdown.download_folder(
+            url=folder_url,
+            output=str(tmp_dir),
+            quiet=False,
+            use_cookies=False,
+        )
+        if not paths:
+            return []
+
+        results = []
+        for p in sorted(paths):
+            p = Path(p)
+            if p.suffix.lower() in _ALLOWED_EXTS:
+                results.append((p.read_bytes(), p.name))
+                print(f"  [gdown] {p.name} — {p.stat().st_size:,} bytes")
+
+        return results
+    finally:
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+def _download_drive_file(service, file_id: str, file_name: str) -> bytes:
+    """Download a Drive file via the SDK directly into memory."""
+    import io
+
+    request = service.files().get_media(fileId=file_id)
+    buf = io.BytesIO()
+    downloader = MediaIoBaseDownload(buf, request)
+    done = False
+    while not done:
+        _, done = downloader.next_chunk()
+
+    data = buf.getvalue()
+    print(f"  [drive/sdk] {file_name} — {len(data):,} bytes")
+    return data
 
 
 # ---------------------------------------------------------------------------
@@ -199,12 +264,12 @@ def _list_drive_images(folder_id: str) -> list[dict]:
 
 
 async def _process_one(
-    source: str,
+    image_bytes: bytes,
     display_name: str,
     jwt_token: str | None,
     refresh_token: str | None = None,
 ) -> dict:
-    """Run the full ETL pipeline for one image URL or path.
+    """Run the full ETL pipeline for one image already loaded into memory.
 
     Returns a dict with keys: success (bool), message (str).
     Never raises — all exceptions are caught and returned as failure dicts.
@@ -213,24 +278,15 @@ async def _process_one(
     provider = _etl.LLM_PROVIDER
     model = _etl.CLOD_DEFAULT_MODEL if provider == "clod" else _etl.OR_DEFAULT_MODEL
 
-    try:
-        image_path, resolved_name, is_temp = _resolve_source(source, run_id)
-        # Prefer the caller-supplied display_name (e.g. Drive filename) over
-        # the name derived from the URL, which may be a generic token like "uc".
-        if display_name:
-            resolved_name = display_name
-    except (ValueError, FileNotFoundError) as exc:
-        return {"success": False, "message": str(exc)}
-
     pipeline_start = time.monotonic()
     try:
         try:
             data = await asyncio.to_thread(
-                _etl.extract, image_path, _DEFAULT_USER, model, run_id, provider
+                _etl.extract, image_bytes, display_name, _DEFAULT_USER, model, run_id, provider
             )
         except Exception as exc:
             total_ms = (time.monotonic() - pipeline_start) * 1000
-            log_pipeline(run_id, resolved_name, _DEFAULT_USER, provider, model,
+            log_pipeline(run_id, display_name, _DEFAULT_USER, provider, model,
                          total_ms, False, str(exc))
             return {"success": False, "message": f"Failed to parse data from source: {exc}"}
 
@@ -238,30 +294,31 @@ async def _process_one(
         model_slug = model.split("/")[-1].lower()
         out_dir = _etl.OUTPUT_DIR / f"{provider}-{model_slug}"
         out_dir.mkdir(parents=True, exist_ok=True)
-        (out_dir / (Path(resolved_name).stem + ".json")).write_text(
+        (out_dir / (Path(display_name).stem + ".json")).write_text(
             json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8"
         )
 
-        data["imageName"] = resolved_name
+        data["imageName"] = display_name
         try:
             created = _etl.upload(data, run_id, token=jwt_token, refresh_token=refresh_token)
         except Exception as exc:
             total_ms = (time.monotonic() - pipeline_start) * 1000
-            log_pipeline(run_id, resolved_name, _DEFAULT_USER, provider, model,
+            log_pipeline(run_id, display_name, _DEFAULT_USER, provider, model,
                          total_ms, False, f"upload: {exc}")
             return {"success": False, "message": f"Unexpected error during ETL process: {exc}"}
 
-        image_stem = Path(resolved_name).stem or resolved_name
+        image_stem = Path(display_name).stem or display_name
         registry = {image_stem: [r.id for r in created]}
         _etl._registry_save(image_stem, [r.id for r in created])
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
-        log_pipeline(run_id, resolved_name, _DEFAULT_USER, provider, model, total_ms, True)
+        log_pipeline(run_id, display_name, _DEFAULT_USER, provider, model, total_ms, True)
         return {"success": True, "message": "ETL completed successfully", "registry": registry}
 
-    finally:
-        if is_temp:
-            image_path.unlink(missing_ok=True)
+    except Exception as exc:
+        total_ms = (time.monotonic() - pipeline_start) * 1000
+        log_pipeline(run_id, display_name, _DEFAULT_USER, provider, model, total_ms, False, str(exc))
+        return {"success": False, "message": f"Unexpected error during ETL process: {exc}"}
 
 
 # ---------------------------------------------------------------------------
@@ -352,28 +409,66 @@ async def run_etl(
                 content={"success": True, "message": "mock batch ETL completed (4 images simulated)", "results": []},
             )
 
-        try:
-            images = await asyncio.to_thread(_list_drive_images, folder_id)
-        except RuntimeError as exc:
-            return JSONResponse(
-                status_code=400,
-                content={"success": False, "message": str(exc)},
-            )
+        # Use OAuth SDK if credentials are configured, otherwise fall back to
+        # gdown (public folders only — no auth required).
+        oauth_configured = bool(_GOOGLE_CLIENT_ID and _GOOGLE_CLIENT_SECRET and _GOOGLE_REFRESH_TOKEN)
 
-        if not images:
-            return JSONResponse(
-                status_code=200,
-                content={"success": True, "message": "No image files found in folder", "results": []},
-            )
+        if oauth_configured:
+            try:
+                service = await asyncio.to_thread(_build_drive_service)
+                images = await asyncio.to_thread(_list_drive_images, service, folder_id)
+            except RuntimeError as exc:
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "message": str(exc)},
+                )
 
-        print(f"\n[etl] batch — {len(images)} image(s) from folder {folder_id}\n")
+            if not images:
+                return JSONResponse(
+                    status_code=200,
+                    content={"success": True, "message": "No image files found in folder", "results": []},
+                )
+
+            print(f"\n[etl] batch/oauth — {len(images)} image(s) from folder {folder_id}\n")
+            file_pairs: list[tuple[bytes, str]] = []
+            for file in images:
+                try:
+                    image_bytes = await asyncio.to_thread(
+                        _download_drive_file, service, file["id"], file["name"]
+                    )
+                    file_pairs.append((image_bytes, file["name"]))
+                except Exception as exc:
+                    print(f"  ✗  {file['name']} — download failed: {exc}")
+                    file_pairs.append((None, file["name"], str(exc)))
+        else:
+            print(f"\n[etl] batch/gdown — downloading public folder {folder_id}\n")
+            try:
+                file_pairs = await asyncio.to_thread(_download_folder_gdown, source)
+            except RuntimeError as exc:
+                return JSONResponse(
+                    status_code=400,
+                    content={"success": False, "message": str(exc)},
+                )
+
+            if not file_pairs:
+                return JSONResponse(
+                    status_code=200,
+                    content={"success": True, "message": "No image files found in folder", "results": []},
+                )
+
         results = []
-        for file in images:
-            download_url = f"https://drive.google.com/uc?export=download&id={file['id']}"
-            result = await _process_one(download_url, file["name"], jwt_token, refresh_token)
-            results.append({"file": file["name"], **result})
+        for entry in file_pairs:
+            if len(entry) == 3:  # download error from OAuth path
+                _, file_name, err_msg = entry
+                results.append({"file": file_name, "success": False, "message": f"Download failed: {err_msg}"})
+                print(f"  ✗  {file_name} — download failed: {err_msg}")
+                continue
+
+            image_bytes, file_name = entry
+            result = await _process_one(image_bytes, file_name, jwt_token, refresh_token)
+            results.append({"file": file_name, **result})
             status = "✓" if result["success"] else "✗"
-            print(f"  {status}  {file['name']} — {result['message']}")
+            print(f"  {status}  {file_name} — {result['message']}")
 
         succeeded = sum(1 for r in results if r["success"])
         total = len(results)
@@ -396,7 +491,12 @@ async def run_etl(
             content={"success": True, "message": "mock ETL completed"},
         )
 
-    result = await _process_one(source, "", jwt_token, refresh_token)
+    try:
+        image_bytes, display_name = await asyncio.to_thread(_resolve_source, source)
+    except (ValueError, FileNotFoundError) as exc:
+        return JSONResponse(status_code=400, content={"success": False, "message": str(exc)})
+
+    result = await _process_one(image_bytes, display_name, jwt_token, refresh_token)
     status_code = 200 if result["success"] else 422
     return JSONResponse(status_code=status_code, content=result)
 

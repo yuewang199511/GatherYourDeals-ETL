@@ -17,4 +17,7 @@ matplotlib>=3.8.0
 
 # Google Drive folder ingestion (POST /etl with a Drive folder URL)
 google-api-python-client>=2.100.0
+google-auth>=2.20.0
+google-auth-oauthlib>=1.0.0         # only needed for scripts/google_oauth_setup.py
+gdown>=5.1.0                        # fallback folder download for public Drive folders (no auth)
 httpx>=0.27.0                       # also used in app.py for URL downloads

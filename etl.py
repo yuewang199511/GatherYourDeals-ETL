@@ -303,21 +303,47 @@ def _build_system_prompt(ocr_text: str, use_direct: bool = False) -> str:
 _ADI_MAX_BYTES = 4 * 1024 * 1024  # Azure DI hard limit: 4 MB
 
 
-def _to_jpeg_bytes(image_path: Path) -> tuple[bytes, str]:
-    """Return (image_bytes, content_type). Converts HEIC → JPEG and downscales images >4 MB."""
-    import io
-    ext = image_path.suffix.lower()
+def _to_jpeg_bytes(image_data: "Path | bytes", display_name: str = "") -> tuple[bytes, str]:
+    """Return (image_bytes, content_type). Converts HEIC → JPEG and downscales images >4 MB.
 
-    if ext == ".heic":
-        try:
-            import pillow_heif
-            from PIL import Image
-            pillow_heif.register_heif_opener()
-            img = Image.open(image_path).convert("RGB")
-        except ImportError:
-            raise ImportError("HEIC support requires: pip install pillow pillow-heif")
+    Accepts either a Path (read from disk) or raw bytes (in-memory).
+    display_name is used for extension detection and error messages when bytes are passed.
+    """
+    import io
+
+    # Normalise to (raw, ext, img_or_none)
+    if isinstance(image_data, Path):
+        ext = image_data.suffix.lower()
+        name_for_error = image_data.name
+        if ext == ".heic":
+            try:
+                import pillow_heif
+                from PIL import Image
+                pillow_heif.register_heif_opener()
+                img = Image.open(image_data).convert("RGB")
+            except ImportError:
+                raise ImportError("HEIC support requires: pip install pillow pillow-heif")
+            raw = None
+        else:
+            raw = image_data.read_bytes()
+            img = None
     else:
-        raw = image_path.read_bytes()
+        raw = image_data
+        ext = Path(display_name).suffix.lower() if display_name else ".jpg"
+        name_for_error = display_name or "image"
+        if ext == ".heic":
+            try:
+                import pillow_heif
+                from PIL import Image
+                pillow_heif.register_heif_opener()
+                img = Image.open(io.BytesIO(raw)).convert("RGB")
+            except ImportError:
+                raise ImportError("HEIC support requires: pip install pillow pillow-heif")
+            raw = None
+        else:
+            img = None
+
+    if img is None:
         if len(raw) <= _ADI_MAX_BYTES:
             content_type = {
                 ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
@@ -331,7 +357,7 @@ def _to_jpeg_bytes(image_path: Path) -> tuple[bytes, str]:
             from PIL import Image
         except ImportError:
             raise ImportError(
-                f"{image_path.name} is {len(raw) // 1024 // 1024} MB (Azure DI limit: 4 MB). "
+                f"{name_for_error} is {len(raw) // 1024 // 1024} MB (Azure DI limit: 4 MB). "
                 "Install Pillow to auto-resize: pip install pillow"
             )
         img = Image.open(io.BytesIO(raw)).convert("RGB")
@@ -706,13 +732,13 @@ def _reconstruct_spatial_rows(result) -> str:
     return "\n".join(output_lines)
 
 
-def ocr(image_path: Path, run_id: str, user_id: str = "", use_cache: bool = True) -> str:
+def ocr(image_data: "Path | bytes", display_name: str, run_id: str, user_id: str = "", use_cache: bool = True) -> str:
     """
     Send image to Azure Document Intelligence (prebuilt-read).
     Returns markdown OCR text with a spatial layout section appended.
 
-    The spatial section labels each line [L]eft / [C]enter / [R]ight based on
-    its bounding-box X position, preserving column structure for the LLM.
+    Accepts either a Path (read from disk) or raw bytes (in-memory).
+    display_name is used for cache keys, logging, and error messages.
 
     When use_cache=True (default), the OCR result is written to
     ocr_cache/<stem>.txt after the first successful call and loaded from there
@@ -720,8 +746,9 @@ def ocr(image_path: Path, run_id: str, user_id: str = "", use_cache: bool = True
     --no-ocr-cache to force a fresh ADI call (e.g. after changing the spatial
     reconstruction logic).
     """
+    cache_stem = Path(display_name).stem if display_name else "unknown"
     if use_cache:
-        cache_file = OCR_CACHE_DIR / (image_path.stem + ".txt")
+        cache_file = OCR_CACHE_DIR / (cache_stem + ".txt")
         if cache_file.exists():
             return cache_file.read_text(encoding="utf-8")
 
@@ -744,7 +771,7 @@ def ocr(image_path: Path, run_id: str, user_id: str = "", use_cache: bool = True
         credential=AzureKeyCredential(AZURE_DI_KEY),
     )
 
-    image_bytes, content_type = _to_jpeg_bytes(image_path)
+    image_bytes, content_type = _to_jpeg_bytes(image_data, display_name)
     image_size_bytes = len(image_bytes)
     start = time.monotonic()
     try:
@@ -779,13 +806,13 @@ def ocr(image_path: Path, run_id: str, user_id: str = "", use_cache: bool = True
             + spatial
         ) if spatial else markdown
 
-        log_adi(run_id, image_path.name, user_id, image_size_bytes,
+        log_adi(run_id, display_name, user_id, image_size_bytes,
                 pages, pages * ADI_COST_PER_PAGE, latency_ms, True,
                 chars_extracted=len(markdown))
 
         if use_cache:
             OCR_CACHE_DIR.mkdir(exist_ok=True)
-            (OCR_CACHE_DIR / (image_path.stem + ".txt")).write_text(
+            (OCR_CACHE_DIR / (cache_stem + ".txt")).write_text(
                 ocr_text, encoding="utf-8"
             )
 
@@ -793,7 +820,7 @@ def ocr(image_path: Path, run_id: str, user_id: str = "", use_cache: bool = True
 
     except Exception as e:
         latency_ms = (time.monotonic() - start) * 1000
-        log_adi(run_id, image_path.name, user_id, image_size_bytes,
+        log_adi(run_id, display_name, user_id, image_size_bytes,
                 0, 0.0, latency_ms, False, error=str(e))
         raise
 
@@ -1945,7 +1972,7 @@ def _extract_address_from_ocr(ocr_text: str, store_name: str) -> str:
     return street_line
 
 
-def structure(ocr_text: str, image_path: Path, user_name: str,
+def structure(ocr_text: str, display_name: str, user_name: str,
               model: str, run_id: str, provider: str | None = None) -> dict:
     """
     Send OCR text to the configured LLM provider and return the structured receipt dict.
@@ -2070,7 +2097,7 @@ def structure(ocr_text: str, image_path: Path, user_name: str,
         latency_ms = (time.monotonic() - start) * 1000
 
         # Inject caller-controlled fields
-        result["imageName"] = image_path.name
+        result["imageName"] = display_name
         result["userName"]  = user_name
 
         # Geocode once using merged store address.
@@ -2085,7 +2112,7 @@ def structure(ocr_text: str, image_path: Path, user_name: str,
         result["latitude"]  = lat
         result["longitude"] = lon
 
-        log_llm(run_id, image_path.name, user_name, resolved_provider, model,
+        log_llm(run_id, display_name, user_name, resolved_provider, model,
                 total_pt, total_ct, total_cost, latency_ms,
                 len(result.get("items", [])), True,
                 cost_source=cost_source, latency_source=latency_source,
@@ -2094,7 +2121,7 @@ def structure(ocr_text: str, image_path: Path, user_name: str,
 
     except Exception as e:
         latency_ms = (time.monotonic() - start) * 1000
-        log_llm(run_id, image_path.name, user_name, resolved_provider, model,
+        log_llm(run_id, display_name, user_name, resolved_provider, model,
                 0, 0, 0.0, latency_ms, 0, False, str(e), latency_source="local",
                 input_chars=_input_chars, prompt_path=_prompt_path)
         raise
@@ -2232,14 +2259,15 @@ if _RT_AVAILABLE:
 # ---------------------------------------------------------------------------
 # Extract — runs the pipeline (via Railtracks Flow if available)
 # ---------------------------------------------------------------------------
-def extract(image_path: Path, user_name: str, model: str, run_id: str,
+def extract(image_data: "Path | bytes", display_name: str, user_name: str, model: str, run_id: str,
             provider: str | None = None, use_cache: bool = True) -> dict:
     resolved_provider = (provider or LLM_PROVIDER).lower()
 
-    if _RT_AVAILABLE:
+    # Railtracks path requires a file on disk — only available when image_data is a Path.
+    if _RT_AVAILABLE and isinstance(image_data, Path):
         flow = rt.Flow(name="receipt_etl", entry_point=receipt_pipeline)
         result: StructureOutput = flow.invoke(OcrInput(
-            image_path=str(image_path),
+            image_path=str(image_data),
             run_id=run_id,
             user_name=user_name,
             model=model,
@@ -2247,12 +2275,12 @@ def extract(image_path: Path, user_name: str, model: str, run_id: str,
         ))
         return json.loads(result.receipt_json)
     else:
-        # Fallback if railtracks is not installed
-        _cache_hit = use_cache and (OCR_CACHE_DIR / (image_path.stem + ".txt")).exists()
+        cache_stem = Path(display_name).stem if display_name else "unknown"
+        _cache_hit = use_cache and (OCR_CACHE_DIR / (cache_stem + ".txt")).exists()
         print(f"  [ADI]  OCR {'(cached)' if _cache_hit else '…'}")
-        ocr_text = ocr(image_path, run_id, user_id=user_name, use_cache=use_cache)
+        ocr_text = ocr(image_data, display_name, run_id, user_id=user_name, use_cache=use_cache)
         print(f"  [LLM]  Structuring via {resolved_provider} ({len(ocr_text)} chars) …")
-        result, _, _, _ = structure(ocr_text, image_path, user_name, model, run_id, provider=resolved_provider)
+        result, _, _, _ = structure(ocr_text, display_name, user_name, model, run_id, provider=resolved_provider)
         return result
 
 

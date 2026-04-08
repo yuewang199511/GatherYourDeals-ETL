@@ -82,22 +82,29 @@ See `docs/setup-azure-di.md` for detailed instructions.
 
 See `docs/llm-provider-setup.md` for model options, pricing, and troubleshooting.
 
-### 4. Google API Key (optional — Drive folder ingestion)
+### 4. Google Drive OAuth (optional — Drive folder ingestion)
 
 Required only if you want to pass a Google Drive folder URL to `POST /etl`.
 
 1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. Select any project (or create one — it's just a quota container)
-3. **APIs & Services → Library** → search **Google Drive API** → Enable
-4. **APIs & Services → Credentials → + Create Credentials → API key**
-5. Copy the key into `.env` and your Railway environment variables:
+2. **APIs & Services → Library** → search **Google Drive API** → Enable
+3. **APIs & Services → Credentials → + Create Credentials → OAuth 2.0 Client ID**
+   - Application type: **Desktop app**
+   - Download the generated `client_secret_*.json`
+4. Run the one-time setup script:
+   ```bash
+   pip install google-auth-oauthlib
+   python scripts/google_oauth_setup.py --client-secret ~/Downloads/client_secret_*.json
+   ```
+   A browser window opens → sign in → grant **Drive (read-only)** access.
+   The script prints your three credentials — paste them into `.env`:
    ```env
-   GOOGLE_API_KEY=AIzaSy...
+   GOOGLE_CLIENT_ID=<your-client-id>
+   GOOGLE_CLIENT_SECRET=<your-client-secret>
+   GOOGLE_REFRESH_TOKEN=<your-refresh-token>
    ```
 
-> The folder does not need to be owned by you — it just needs to be shared as **"Anyone with the link can view"**.
-
-See `docs/general.md` → *Google Drive Folder Ingestion* for full setup details.
+> The folder must be shared with the Google account you authorized, or shared as **"Anyone with the link can view"**.
 
 ### 5. Azure Maps Geocoding (Step 3 — optional)
 
@@ -161,7 +168,9 @@ GYD_ACCESS_TOKEN=
 ETL_DEFAULT_USER=lkim
 
 # Google Drive folder ingestion (optional — required for Drive folder URLs)
-GOOGLE_API_KEY=
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REFRESH_TOKEN=
 ```
 
 ---
@@ -226,7 +235,7 @@ Google Drive viewer URLs (`/file/d/<id>/view`) are automatically converted to di
 | Status | Meaning |
 |--------|---------|
 | `200` | Pipeline + upload completed successfully (single or batch) |
-| `400` | Empty source, unreachable URL, unsupported file type, or missing `GOOGLE_API_KEY` |
+| `400` | Empty source, unreachable URL, unsupported file type, or missing Google OAuth credentials |
 | `422` | Source reachable but OCR / LLM processing failed |
 | `500` | Upload to GYD service failed |
 

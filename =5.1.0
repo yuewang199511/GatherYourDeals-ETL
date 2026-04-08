@@ -1,0 +1,23 @@
+Collecting gdown
+  Downloading gdown-5.2.1-py3-none-any.whl.metadata (5.8 kB)
+Collecting beautifulsoup4 (from gdown)
+  Downloading beautifulsoup4-4.14.3-py3-none-any.whl.metadata (3.8 kB)
+Requirement already satisfied: filelock in ./venv/lib/python3.12/site-packages (from gdown) (3.25.2)
+Requirement already satisfied: requests[socks] in ./venv/lib/python3.12/site-packages (from gdown) (2.32.5)
+Requirement already satisfied: tqdm in ./venv/lib/python3.12/site-packages (from gdown) (4.67.3)
+Collecting soupsieve>=1.6.1 (from beautifulsoup4->gdown)
+  Downloading soupsieve-2.8.3-py3-none-any.whl.metadata (4.6 kB)
+Requirement already satisfied: typing-extensions>=4.0.0 in ./venv/lib/python3.12/site-packages (from beautifulsoup4->gdown) (4.15.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in ./venv/lib/python3.12/site-packages (from requests[socks]->gdown) (3.4.6)
+Requirement already satisfied: idna<4,>=2.5 in ./venv/lib/python3.12/site-packages (from requests[socks]->gdown) (3.11)
+Requirement already satisfied: urllib3<3,>=1.21.1 in ./venv/lib/python3.12/site-packages (from requests[socks]->gdown) (2.6.3)
+Requirement already satisfied: certifi>=2017.4.17 in ./venv/lib/python3.12/site-packages (from requests[socks]->gdown) (2026.2.25)
+Collecting PySocks!=1.5.7,>=1.5.6 (from requests[socks]->gdown)
+  Downloading PySocks-1.7.1-py3-none-any.whl.metadata (13 kB)
+Downloading gdown-5.2.1-py3-none-any.whl (18 kB)
+Downloading beautifulsoup4-4.14.3-py3-none-any.whl (107 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 107.7/107.7 kB 1.9 MB/s eta 0:00:00
+Downloading PySocks-1.7.1-py3-none-any.whl (16 kB)
+Downloading soupsieve-2.8.3-py3-none-any.whl (37 kB)
+Installing collected packages: soupsieve, PySocks, beautifulsoup4, gdown
+Successfully installed PySocks-1.7.1 beautifulsoup4-4.14.3 gdown-5.2.1 soupsieve-2.8.3
