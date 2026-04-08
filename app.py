@@ -253,6 +253,7 @@ async def _process_one(
 
         image_stem = Path(resolved_name).stem or resolved_name
         registry = {image_stem: [r.id for r in created]}
+        _etl._registry_save(image_stem, [r.id for r in created])
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
         log_pipeline(run_id, resolved_name, _DEFAULT_USER, provider, model, total_ms, True)

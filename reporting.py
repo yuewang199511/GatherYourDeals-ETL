@@ -99,7 +99,10 @@ def _score_receipt(output_items: list, truth_items: list) -> dict:
     a_words = {w for w in re.split(r"\W+", str(out0.get("storeName") or "").lower()) if len(w) > 3 and w not in _stop}
     b_words = {w for w in re.split(r"\W+", str(tru0.get("storeName") or "").lower()) if len(w) > 3 and w not in _stop}
     scores["storeName"]    = bool(a_words and b_words and a_words & b_words)
-    scores["purchaseDate"] = exact(out0.get("purchaseDate"), tru0.get("purchaseDate"))
+    # Normalize date separators (dots, hyphens, slashes all equivalent) before comparing
+    def _norm_date(d):
+        return re.sub(r"[-/]", ".", str(d).strip()) if d is not None else None
+    scores["purchaseDate"] = exact(_norm_date(out0.get("purchaseDate")), _norm_date(tru0.get("purchaseDate")))
 
     # Lat/lon: pass within 0.02° (~2.2 km) — covers geocoder centroid vs entrance variance
     def coord_match(field):
