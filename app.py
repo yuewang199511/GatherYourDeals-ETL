@@ -374,9 +374,10 @@ async def run_etl(
     Run the full ETL pipeline for a receipt image or a Google Drive folder.
 
     - Single image: pass any image URL, Google Drive file URL, or local path.
-    - Batch: pass a Google Drive folder URL (shared as "Anyone with the link can view").
-      All image files directly inside the folder are processed in sequence.
-      Requires GOOGLE_API_KEY in .env.
+    - Batch: pass a Google Drive folder URL. Files are downloaded via gdown first
+      (public folders, no auth required). If gdown retrieves no files, the service
+      falls back to the OAuth SDK (requires GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET,
+      and GOOGLE_REFRESH_TOKEN in .env — works for private folders).
 
     Set `mock=true` to skip real API calls and simulate pipeline latency instead
     (zero cost — for Experiment 1 Phase B load testing).
@@ -409,51 +410,51 @@ async def run_etl(
                 content={"success": True, "message": "mock batch ETL completed (4 images simulated)", "results": []},
             )
 
-        # Use OAuth SDK if credentials are configured, otherwise fall back to
-        # gdown (public folders only — no auth required).
+        # Try gdown first (public folders, no auth required).
+        # Fall back to OAuth SDK if gdown finds no files (e.g. private folder)
+        # and credentials are configured.
         oauth_configured = bool(_GOOGLE_CLIENT_ID and _GOOGLE_CLIENT_SECRET and _GOOGLE_REFRESH_TOKEN)
 
-        if oauth_configured:
-            try:
-                service = await asyncio.to_thread(_build_drive_service)
-                images = await asyncio.to_thread(_list_drive_images, service, folder_id)
-            except RuntimeError as exc:
-                return JSONResponse(
-                    status_code=400,
-                    content={"success": False, "message": str(exc)},
-                )
+        file_pairs: list[tuple] = []
+        gdown_error: str | None = None
 
-            if not images:
-                return JSONResponse(
-                    status_code=200,
-                    content={"success": True, "message": "No image files found in folder", "results": []},
-                )
+        print(f"\n[etl] batch/gdown — attempting public download for folder {folder_id}\n")
+        try:
+            file_pairs = await asyncio.to_thread(_download_folder_gdown, source)
+        except Exception as exc:
+            gdown_error = str(exc)
+            print(f"  [gdown] failed: {gdown_error}")
 
-            print(f"\n[etl] batch/oauth — {len(images)} image(s) from folder {folder_id}\n")
-            file_pairs: list[tuple[bytes, str]] = []
-            for file in images:
+        if not file_pairs:
+            if oauth_configured:
+                print(f"  [gdown] no files retrieved — falling back to OAuth SDK\n")
                 try:
-                    image_bytes = await asyncio.to_thread(
-                        _download_drive_file, service, file["id"], file["name"]
+                    service = await asyncio.to_thread(_build_drive_service)
+                    images = await asyncio.to_thread(_list_drive_images, service, folder_id)
+                except RuntimeError as exc:
+                    return JSONResponse(
+                        status_code=400,
+                        content={"success": False, "message": str(exc)},
                     )
-                    file_pairs.append((image_bytes, file["name"]))
-                except Exception as exc:
-                    print(f"  ✗  {file['name']} — download failed: {exc}")
-                    file_pairs.append((None, file["name"], str(exc)))
-        else:
-            print(f"\n[etl] batch/gdown — downloading public folder {folder_id}\n")
-            try:
-                file_pairs = await asyncio.to_thread(_download_folder_gdown, source)
-            except RuntimeError as exc:
-                return JSONResponse(
-                    status_code=400,
-                    content={"success": False, "message": str(exc)},
-                )
 
-            if not file_pairs:
+                print(f"  [oauth] {len(images)} image(s) found\n")
+                for file in images:
+                    try:
+                        image_bytes = await asyncio.to_thread(
+                            _download_drive_file, service, file["id"], file["name"]
+                        )
+                        file_pairs.append((image_bytes, file["name"]))
+                    except Exception as exc:
+                        file_pairs.append((None, file["name"], str(exc)))
+            else:
+                msg = (
+                    f"gdown could not retrieve files ({gdown_error}). "
+                    "If the folder is private, set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, "
+                    "and GOOGLE_REFRESH_TOKEN in .env to enable OAuth fallback."
+                ) if gdown_error else "No image files found in folder."
                 return JSONResponse(
-                    status_code=200,
-                    content={"success": True, "message": "No image files found in folder", "results": []},
+                    status_code=400 if gdown_error else 200,
+                    content={"success": not gdown_error, "message": msg, "results": []},
                 )
 
         results = []
