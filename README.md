@@ -82,29 +82,15 @@ See `docs/setup-azure-di.md` for detailed instructions.
 
 See `docs/llm-provider-setup.md` for model options, pricing, and troubleshooting.
 
-### 4. Google Drive OAuth (optional — Drive folder ingestion)
+### 4. Google Drive folder ingestion (optional)
 
-Required only if you want to pass a Google Drive folder URL to `POST /etl`.
+`POST /etl` accepts a Google Drive folder URL and processes all images inside
+it via **gdown** — no API key or OAuth required.
 
-1. Go to [console.cloud.google.com](https://console.cloud.google.com)
-2. **APIs & Services → Library** → search **Google Drive API** → Enable
-3. **APIs & Services → Credentials → + Create Credentials → OAuth 2.0 Client ID**
-   - Application type: **Desktop app**
-   - Download the generated `client_secret_*.json`
-4. Run the one-time setup script:
-   ```bash
-   pip install google-auth-oauthlib
-   python scripts/google_oauth_setup.py --client-secret ~/Downloads/client_secret_*.json
-   ```
-   A browser window opens → sign in → grant **Drive (read-only)** access.
-   The script prints your three credentials — paste them into `.env`:
-   ```env
-   GOOGLE_CLIENT_ID=<your-client-id>
-   GOOGLE_CLIENT_SECRET=<your-client-secret>
-   GOOGLE_REFRESH_TOKEN=<your-refresh-token>
-   ```
+The folder must be shared as **"Anyone with the link can view"**. No setup
+needed — `gdown` is included in `requirements.txt`.
 
-> The folder must be shared with the Google account you authorized, or shared as **"Anyone with the link can view"**.
+> For private folder support, see `docs/general.md` → *Google Drive Folder Ingestion*.
 
 ### 5. Azure Maps Geocoding (Step 3 — optional)
 
@@ -167,7 +153,7 @@ GYD_ACCESS_TOKEN=
 # ETL service username written into receipt JSON metadata
 ETL_DEFAULT_USER=lkim
 
-# Google Drive folder ingestion (optional — required for Drive folder URLs)
+# Google Drive private folder access (optional — public folders use gdown automatically)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 GOOGLE_REFRESH_TOKEN=
