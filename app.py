@@ -31,6 +31,7 @@ Environment (.env):
         GOOGLE_REFRESH_TOKEN=<token>    # long-lived refresh token
 """
 
+import sys
 import asyncio
 import json
 import math
@@ -50,8 +51,8 @@ from fastapi import FastAPI, Query, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-import etl as _etl
-from etl_logger import log_pipeline
+from src import etl as _etl
+from src.etl_logger import log_pipeline
 
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request as GoogleAuthRequest

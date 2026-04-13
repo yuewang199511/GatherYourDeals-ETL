@@ -9,8 +9,7 @@ trace_id, user_id, image_name.
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-
-LOGS_DIR = Path("logs")
+from src.core import config
 
 # ADI cost per page — always log at S0 rate ($0.0015/page) for accurate
 # production cost tracking, regardless of free tier usage.
@@ -18,9 +17,9 @@ ADI_COST_PER_PAGE = 0.0015
 
 
 def _log(entry: dict):
-    LOGS_DIR.mkdir(exist_ok=True)
+    config.LOGS_DIR.mkdir(exist_ok=True)
     date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-    with open(LOGS_DIR / f"etl_{date}.jsonl", "a", encoding="utf-8") as f:
+    with open(config.LOGS_DIR / f"etl_{date}.jsonl", "a", encoding="utf-8") as f:
         f.write(json.dumps(entry, ensure_ascii=False) + "\n")
 
 

@@ -21,6 +21,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from itertools import combinations
 from pathlib import Path
+from src.core import config
 
 # ---------------------------------------------------------------------------
 # Paths — must match etl.py
@@ -37,7 +38,7 @@ IMAGE_EXTS       = {".jpg", ".jpeg", ".png", ".webp", ".heic", ".tiff", ".tif", 
 # ---------------------------------------------------------------------------
 def _load_log_entries() -> list[dict]:
     entries = []
-    for f in sorted(LOGS_DIR.glob("etl_*.jsonl")):
+    for f in sorted(config.LOGS_DIR.glob("etl_*.jsonl")):
         for line in f.read_text(encoding="utf-8").splitlines():
             if line.strip():
                 try:
@@ -165,7 +166,7 @@ def _score_receipt(output_items: list, truth_items: list) -> dict:
     return scores
 
 
-def _compute_eval(output_dir: Path, gt_dir: Path = GROUND_TRUTH_DIR):
+def _compute_eval(output_dir: Path, gt_dir: Path = config.GROUND_TRUTH_DIR):
     """Score every output/<stem>.json against ground_truth/<stem>.json."""
     header = ("Image", "GT items", "Store", "Date", "Lat", "Lon",
               "Items", "Name match", "Price match", "Amount match", "Score")
@@ -208,7 +209,7 @@ def _compute_eval(output_dir: Path, gt_dir: Path = GROUND_TRUTH_DIR):
     return header, rows, scores
 
 
-def eval_receipts(output_dir: Path = OUTPUT_DIR, gt_dir: Path = GROUND_TRUTH_DIR):
+def eval_receipts(output_dir: Path = config.OUTPUT_DIR, gt_dir: Path = config.GROUND_TRUTH_DIR):
     """
     Compare output against ground_truth/ — field by field per receipt.
     Evaluates each provider subdirectory separately if present.
@@ -220,7 +221,7 @@ def eval_receipts(output_dir: Path = OUTPUT_DIR, gt_dir: Path = GROUND_TRUTH_DIR
     provider_dirs = [d for d in sorted(output_dir.iterdir()) if d.is_dir()] if output_dir.exists() else []
     dirs_to_eval  = provider_dirs if provider_dirs else [output_dir]
 
-    REPORTS_DIR.mkdir(exist_ok=True)
+    config.REPORTS_DIR.mkdir(exist_ok=True)
     ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     md_lines = [
         "# GatherYourDeals ETL — Eval Report",
@@ -254,7 +255,7 @@ def eval_receipts(output_dir: Path = OUTPUT_DIR, gt_dir: Path = GROUND_TRUTH_DIR
         if scores:
             md_lines += ["", f"**Avg score: {sum(scores)/len(scores):.1f}%**", ""]
 
-    md_path = REPORTS_DIR / f"eval_{ts}.md"
+    md_path = config.REPORTS_DIR / f"eval_{ts}.md"
     md_path.write_text("\n".join(md_lines), encoding="utf-8")
     print(f"\nEval report → {md_path}")
 
@@ -336,15 +337,15 @@ def baseline_report():
 
     # --- Ground truth item counts ---
     gt_counts: dict[str, int] = {}
-    if GROUND_TRUTH_DIR.exists():
-        for f in GROUND_TRUTH_DIR.glob("*.json"):
+    if config.GROUND_TRUTH_DIR.exists():
+        for f in config.GROUND_TRUTH_DIR.glob("*.json"):
             try:
                 gt_counts[f.stem] = len(json.loads(f.read_text(encoding="utf-8")))
             except Exception:
                 pass
 
     receipts_dir  = Path("Receipts")
-    receipt_count = len([f for f in receipts_dir.iterdir() if f.suffix.lower() in IMAGE_EXTS]) \
+    receipt_count = len([f for f in receipts_dir.iterdir() if f.suffix.lower() in config.IMAGE_EXTS]) \
                     if receipts_dir.exists() else "?"
 
     # --- Pipeline E2E latency ---
@@ -552,7 +553,7 @@ def baseline_report():
 
     provider_dirs = [
         (f"{row['provider']} / {row['model'].split('/')[-1]}",
-         OUTPUT_DIR / _output_slug(row["provider"], row["model"]))
+         config.OUTPUT_DIR / _output_slug(row["provider"], row["model"]))
         for row in provider_rows
     ]
 
@@ -655,8 +656,8 @@ def baseline_report():
     if any_eval:
         md += eval_md
 
-    REPORTS_DIR.mkdir(exist_ok=True)
-    md_path = REPORTS_DIR / f"baseline_{ts}.md"
+    config.REPORTS_DIR.mkdir(exist_ok=True)
+    md_path = config.REPORTS_DIR / f"baseline_{ts}.md"
     md_path.write_text("\n".join(md), encoding="utf-8")
     print(f"\nBaseline report → {md_path}")
 

@@ -1,8 +1,16 @@
+# Python artifacts
 venv/
 __pycache__/
 *.pyc
+
+# Local Config & Secrets
 .env
+.git/
+.vscode/
+
+# Project Data (Prevents bloat & privacy leaks)
 Receipts/
+ocr_cache/
 output/
 logs/
 reports/
