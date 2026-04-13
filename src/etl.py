@@ -66,6 +66,7 @@ import re
 import sys
 import time
 import uuid
+import tempfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -575,24 +576,43 @@ def extract(image_data: "Path | bytes", display_name: str, user_name: str, model
     resolved_provider = (provider or config.LLM_PROVIDER).lower()
 
     # Railtracks path requires a file on disk — only available when image_data is a Path.
-    if _RT_AVAILABLE and isinstance(image_data, Path):
-        flow = rt.Flow(name="receipt_etl", entry_point=receipt_pipeline)
-        result: StructureOutput = flow.invoke(OcrInput(
-            image_path=str(image_data),
-            run_id=run_id,
-            user_name=user_name,
-            model=model,
-            provider=resolved_provider,
-        ))
-        return json.loads(result.receipt_json)
+    if isinstance(image_data, bytes):
+        # Create a temp file so Railtracks has a physical path to work with
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as tmp:
+            tmp.write(image_data)
+            tmp_path = tmp.name
+        image_to_process = tmp_path
     else:
-        cache_stem = Path(display_name).stem if display_name else "unknown"
-        _cache_hit = use_cache and (config.OCR_CACHE_DIR / (cache_stem + ".txt")).exists()
-        print(f"  [ADI]  OCR {'(cached)' if _cache_hit else '…'}")
-        ocr_text = ocr.AzureOCRService(image_data, display_name, run_id, user_id=user_name, use_cache=use_cache)
-        print(f"  [LLM]  Structuring via {resolved_provider} ({len(ocr_text)} chars) …")
-        result, _, _, _ = structure(ocr_text, display_name, user_name, model, run_id, provider=resolved_provider)
-        return result
+        image_to_process = str(image_data)
+
+    flow = rt.Flow(name="receipt_etl", entry_point=receipt_pipeline)
+    result = flow.invoke(OcrInput(
+        image_path=image_to_process,
+        run_id=run_id,
+        user_name=user_name,
+        model=model,
+        provider=resolved_provider,
+    ))
+    return json.loads(result.receipt_json)
+
+    # if _RT_AVAILABLE and isinstance(image_data, Path):
+    #     flow = rt.Flow(name="receipt_etl", entry_point=receipt_pipeline)
+    #     result: StructureOutput = flow.invoke(OcrInput(
+    #         image_path=str(image_data),
+    #         run_id=run_id,
+    #         user_name=user_name,
+    #         model=model,
+    #         provider=resolved_provider,
+    #     ))
+    #     return json.loads(result.receipt_json)
+    # else:
+    #     cache_stem = Path(display_name).stem if display_name else "unknown"
+    #     _cache_hit = use_cache and (config.OCR_CACHE_DIR / (cache_stem + ".txt")).exists()
+    #     print(f"  [ADI]  OCR {'(cached)' if _cache_hit else '…'}")
+    #     ocr_text = ocr.AzureOCRService(image_data, display_name, run_id, user_id=user_name, use_cache=use_cache)
+    #     print(f"  [LLM]  Structuring via {resolved_provider} ({len(ocr_text)} chars) …")
+    #     result, _, _, _ = structure(ocr_text, display_name, user_name, model, run_id, provider=resolved_provider)
+    #     return result
 
 
 # ---------------------------------------------------------------------------

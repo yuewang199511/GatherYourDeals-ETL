@@ -31,7 +31,6 @@ Environment (.env):
         GOOGLE_REFRESH_TOKEN=<token>    # long-lived refresh token
 """
 
-import sys
 import asyncio
 import json
 import math
@@ -321,11 +320,6 @@ async def _process_one(
         total_ms = (time.monotonic() - pipeline_start) * 1000
         log_pipeline(run_id, display_name, _DEFAULT_USER, provider, model, total_ms, False, str(exc))
         return {"success": False, "message": f"Unexpected error during ETL process: {exc}"}
-
-
-# ---------------------------------------------------------------------------
-# Endpoints
-# ---------------------------------------------------------------------------
 
 
 # ---------------------------------------------------------------------------

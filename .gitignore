@@ -41,7 +41,14 @@ Receipts/
 ReceiptJson/
 ground_truth/
 
+reports/
+scripts/
+logs/
+experiments/
+debug/
+
 # Local docs
 docs/
 
 .railtracks
+
