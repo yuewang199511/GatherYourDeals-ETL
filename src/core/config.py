@@ -56,9 +56,6 @@ OCR_CACHE_DIR    = ROOT_DIR / "ocr_cache"
 for _path in [OUTPUT_DIR, LOGS_DIR, REPORTS_DIR, OCR_CACHE_DIR]:
     _path.mkdir(parents=True, exist_ok=True)
 
-# Registry that maps image stem → list of GYD receipt UUIDs
-_UPLOAD_REGISTRY = OUTPUT_DIR / ".upload_registry.json"
-
 # Registry that maps image stem → list of GYD receipt UUIDs created on upload.
 # Used by delete_uploaded() to find and remove records from the database.
 _UPLOAD_REGISTRY = OUTPUT_DIR / ".upload_registry.json"

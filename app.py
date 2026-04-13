@@ -294,7 +294,7 @@ async def _process_one(
 
         rows = _etl.flatten_receipt(data)
         model_slug = model.split("/")[-1].lower()
-        out_dir = _etl.OUTPUT_DIR / f"{provider}-{model_slug}"
+        out_dir = config.OUTPUT_DIR / f"{provider}-{model_slug}"
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / (Path(display_name).stem + ".json")).write_text(
             json.dumps(rows, indent=2, ensure_ascii=False), encoding="utf-8"

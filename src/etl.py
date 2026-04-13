@@ -154,7 +154,7 @@ def _build_system_prompt(ocr_text: str, use_direct: bool = False) -> str:
     
     # Costco Specifics
     if "COSTCO" in ocr_upper:
-        addenda.append(prompts.COSTCO_ADDENDUM)
+        addenda.append(prompts.COSTCO_PROMPT_ADDENDUM)
     
     # You can easily add more store rules here later
     # if "WALMART" in ocr_upper:
