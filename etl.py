@@ -2606,16 +2606,25 @@ def upload(receipt: dict, run_id: str, token: str | None = None, refresh_token: 
 
     for item in items:
         product_name = item.get("productName", "")
+        # --- DEFINE THESE FIRST ---
+        purchase_date = receipt.get("purchaseDate", "0000.00.00")
+        price = item.get("price", "0.00USD")
+        store = receipt.get("storeName", "Unknown")
+        # --------------------------
         last_exc = None
         for attempt in range(1, _UPLOAD_MAX_RETRIES + 1):
             try:
+                # Keep product_name as a string unless the SDK specifically asked for a tuple
                 r = client.receipts.create(
-                    product_name=product_name,
-                    purchase_date=receipt.get("purchaseDate", ""),
-                    price=item.get("price", "0.00USD"),
+                    product_name=product_name, 
+                    purchase_date=purchase_date,
+                    price=price,
                     amount=str(item.get("amount", "1")),
-                    store_name=receipt.get("storeName", ""),
+                    store_name=store,
                 )
+                # Now print after successful creation
+                print(f"[{run_id[:8]:<8}] {purchase_date:10}  {product_name:<25}  {price:>10}  @ {store}")
+                
                 created.append(r)
                 last_exc = None
                 break
